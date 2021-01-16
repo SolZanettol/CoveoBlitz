@@ -139,8 +139,8 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_victim(self, init_position):
-        ennemy_outlaws = self.get_ennemy_outlaws(self, init_position)
-        ennemy_miners = self.get_ennemy_miners(self, init_position)
+        ennemy_outlaws = self.get_ennemy_outlaws(init_position)
+        ennemy_miners = self.get_ennemy_miners(init_position)
         victims = ennemy_outlaws
         if ennemy_outlaws == []:
             victims = ennemy_miners
