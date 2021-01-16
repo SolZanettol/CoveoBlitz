@@ -17,21 +17,21 @@ class Bot:
         self.my_crew = None
         self.blitzium = None
         self.units = None
+        self.current_tick = None
+        self.total_ticks = None
         self.MAX_MINER_AMOUNT = 5
         self.MAX_CART_AMOUNT = 5
 
-
-
     def get_next_move(self, game_message: GameMessage) -> List[Action]:
-
         self.my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
         self.crews = game_message.crews
         self.game_map = game_message.map
         self.rules = game_message.rules
         self.my_id = game_message.crewId
+        self.current_tick = game_message.tick
+        self.total_ticks = game_message.totalTick
         self.blitzium = self.my_crew.blitzium
         self.units = self.my_crew.units
-
 
         actions: List[Action] = [self.get_miner_action(unit) for unit in self.units if
                                  unit.type == UnitType.MINER]
@@ -181,4 +181,6 @@ class Bot:
         has_cash = self.blitzium >= self.my_crew.prices.MINER
         maxed_out = len(self.get_units_by_type(UnitType.MINER)) >= self.MAX_MINER_AMOUNT
         has_more_spots = self.get_closest_minable_square(self.my_crew.homeBase)
-        return has_cash and has_more_spots #and (not maxed_out)
+        have_more_time = self.my_crew.prices.MINER * 3 < (self.total_ticks - self.current_tick)
+
+        return has_cash and has_more_spots and have_more_time #and (not maxed_out)
