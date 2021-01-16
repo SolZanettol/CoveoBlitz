@@ -20,9 +20,10 @@ class Bot:
         self.in_range = None
         self.current_tick = None
         self.total_ticks = None
+        self.outlaws_available = 1
         self.MAX_MINER_AMOUNT = 5
         self.MAX_CART_AMOUNT = 5
-        self.MAX_OUTLAW_AMOUNT = 1
+        
 
     def get_next_move(self, game_message: GameMessage) -> List[Action]:
         self.my_crew = game_message.get_crews_by_id()[game_message.crewId]
@@ -59,9 +60,9 @@ class Bot:
         if self.should_buy_miner():
             actions.append(BuyAction(UnitType.MINER))
 
-        if(self.blitzium >= 400 and len(
-                list(filter(lambda unit: unit.type == UnitType.OUTLAW, self.units))) < self.MAX_OUTLAW_AMOUNT):
+        if(self.blitzium >= 300 + self.my_crew.prices.OUTLAW and self.outlaws_available > 0):
             actions.append(BuyAction(UnitType.OUTLAW))
+            self.outlaws_available -=1
 
         return actions
 
@@ -112,17 +113,18 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_outlaw_action(self, unit) :
-        if self.blitzium > 600:
-            for adjacent in self.get_adjacent_positions(unit.position):
-                try:
-                    for crew in self.crews :
-                        if not self.my_id == crew.id:
-                            for other in crew.units:
-                                if other.type == UnitType.MINER:
-                                    if adjacent == other.position:
-                                        return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
-                except:
-                    pass
+        if (len(self.crews) > 2 and self.total_ticks - self.current_tick > 250) or (len(self.crews) == 2 and self.total_ticks - self.current_tick > 150):
+            if self.blitzium > 600:
+                for adjacent in self.get_adjacent_positions(unit.position):
+                    try:
+                        for crew in self.crews :
+                            if not self.my_id == crew.id:
+                                for other in crew.units:
+                                    if other.type == UnitType.MINER:
+                                        if adjacent == other.position:
+                                            return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
+                    except:
+                        pass
 
         ennemy = self.get_victim(unit.position)
         target = ennemy if ennemy is not None else self.get_random_position(self.game_map.get_map_size())
