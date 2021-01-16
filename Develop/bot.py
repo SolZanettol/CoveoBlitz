@@ -60,7 +60,7 @@ class Bot:
         if self.should_buy_miner():
             actions.append(BuyAction(UnitType.MINER))
 
-        if(self.blitzium >= 300 + self.my_crew.prices.OUTLAW and self.outlaws_available > 0):
+        if(self.blitzium >= 200 + self.my_crew.prices.OUTLAW and self.outlaws_available > 0):
             actions.append(BuyAction(UnitType.OUTLAW))
             self.outlaws_available -=1
 
