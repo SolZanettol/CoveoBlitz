@@ -91,14 +91,12 @@ class Bot:
             return self.drop_home(unit, my_crew)
 
         for adjacent in self.get_adjacent_positions(unit.position):
-            print(unit.position)
             try:
                 if map.get_tile_type_at(adjacent) == TileType.MINE:
                     return UnitAction(UnitActionType.MINE, unit.id, adjacent)
             except:
                 pass
 
-        print(unit.position)
         minable = self.get_closest_minable_square(unit.position, map, crews)
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
