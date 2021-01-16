@@ -2,7 +2,7 @@ up = "1P-01.bmp"
 dp = [
     "2P-01.bmp", # basic birch
     "2P-02.bmp", # 2 sources au milieux, ultra open
-    "2P-03.bmp",
+    "2P-03.bmp", # really wack, really hard, good training
     "2P-04.bmp", # grosse criss 33*33 
     "2P-05.bmp", # grosse criss 32*32
     "2P-06.bmp",
