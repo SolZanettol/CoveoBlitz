@@ -21,7 +21,6 @@ class Bot:
 
         if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
             actions.append(BuyAction(UnitType.MINER))
-            print(len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))))
 
         return actions
 
