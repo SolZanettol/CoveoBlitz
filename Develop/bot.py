@@ -105,7 +105,7 @@ class Bot:
                 Position(position.x + 1, position.y)]
 
     def get_miner_action(self, unit):
-        if unit.blitzium >= 40:
+        if unit.blitzium == 50:
             return self.drop_miner_cargo(unit)
 
         for adjacent in self.get_adjacent_positions(unit.position):
