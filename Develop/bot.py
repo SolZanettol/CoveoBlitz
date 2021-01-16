@@ -129,10 +129,10 @@ class Bot:
                                             if adjacent == other.position and not self.is_in_enemy_zone(adjacent):
                                                 return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
         enemy = self.get_victim(unit.position)
-        if not enemy == None:
+        if enemy is not None:
             return UnitAction(UnitActionType.MOVE, unit.id, enemy)
         else:
-            return UnitAction(UnitActionType.MOVE, unit.id, unit.position)
+            return UnitAction(UnitActionType.MOVE, unit.id, self.get_random_position(self.game_map.get_map_size))
 
     def get_victim(self, init_position):
         enemy_outlaws = self.get_enemy_outlaws()
@@ -173,7 +173,7 @@ class Bot:
                 for crew in self.crews:
                     if not self.my_id == crew.id:
                         for unit in crew.units:
-                            if unit.type == UnitType.OUTLAW:
+                            if unit.type == UnitType.OUTLAW and self.blitzium > 50:
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
