@@ -36,7 +36,6 @@ async def game_loop(websocket: websockets.WebSocketServerProtocol, bot: Bot):
         my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
         print(f"\Tick {game_message.tick}")
         print(f"\nError? {' '.join(my_crew.errors)}")
-        print(f"\n{game_message}")
 
         next_move: UnitActionType.MOVE = bot.get_next_move(game_message)
         await websocket.send(BotMessage(type=MessageType.COMMAND, actions=next_move, tick=game_message.tick).to_json())
