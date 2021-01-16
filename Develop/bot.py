@@ -113,26 +113,29 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_outlaw_action(self, unit) :
-        if (len(self.crews) > 2 and self.total_ticks - self.current_tick > 250) or (len(self.crews) == 2 and self.total_ticks - self.current_tick > 200):
-            if self.blitzium > 200:
-                for adjacent in self.get_adjacent_positions(unit.position):
-                        for crew in self.crews :
-                            if not self.my_id == crew.id:
-                                for other in crew.units:
-                                    if other.type == UnitType.MINER:
-                                        if adjacent == other.position and not self.is_in_enemy_zone(adjacent):
-                                            return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
-
+        if len(self.crews) == 2:    
+            if (self.total_ticks - self.current_tick > 300):
+                if self.blitzium > 200:
+                    for adjacent in self.get_adjacent_positions(unit.position):
+                            for crew in self.crews :
+                                if not self.my_id == crew.id:
+                                    for other in crew.units:
+                                        if other.type == UnitType.MINER:
+                                            if adjacent == other.position and not self.is_in_enemy_zone(adjacent):
+                                                return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
         enemy = self.get_victim(unit.position)
-        target = enemy if enemy is not None else self.get_random_position(self.game_map.get_map_size())
-        return UnitAction(UnitActionType.MOVE, unit.id, target)
+        if not enemy == None:
+            return UnitAction(UnitActionType.MOVE, unit.id, enemy)
+        else:
+            return UnitAction(UnitActionType.MOVE, unit.id, unit.position)
 
     def get_victim(self, init_position):
         enemy_outlaws = self.get_enemy_outlaws()
         enemy_miners = self.get_enemy_miners()
         victims = enemy_outlaws
         if enemy_outlaws == []:
-            victims = enemy_miners
+            if len(self.crews) == 2:
+                victims = enemy_miners
 
         closest = self.get_closest_position(init_position, victims)
         if closest is None:
@@ -294,14 +297,18 @@ class Bot:
 
     def should_buy_outlaw(self):
         if self.outlaws_available > 0:
-            if self.blitzium >= 125 + self.my_crew.prices.OUTLAW or (self.blitzium >= self.my_crew.prices.OUTLAW and self.has_challenger()):
-                return True
+            if len(self.crews) == 2:
+                if self.blitzium >= 125 + self.my_crew.prices.OUTLAW:
+                    return True
+            else:
+                if self.blitzium >= self.my_crew.prices.OUTLAW and self.has_challenger():
+                    return True
         return False
 
     def has_challenger(self):
         for crew in self.crews:
             for unit in crew.units:
-                if unit.type == UnitType.OUTLAW and crew.id != self.my_id:
+                if unit.type == UnitType.OUTLAW and not crew.id == self.my_id:
                     return True
         return False
 
