@@ -204,9 +204,11 @@ class Bot:
                     cart.blitzium == self.rules.MAX_CART_CARGO):
                     return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
             if unit.position in self.get_adjacent_positions(self.my_crew.homeBase):
+                potential = []
                 for adj in self.get_adjacent_positions(unit.position):
                     if adj != self.my_crew.homeBase and adj in self.in_range:
-                        return UnitAction(UnitActionType.MOVE, unit.id, adj)
+                        potential += [adj]
+                    return UnitAction(UnitActionType.MOVE, unit.id, random.choice(adj))
 
         depot_positions_in_range = []
         depot_positions = []
