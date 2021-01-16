@@ -178,14 +178,11 @@ class Bot:
     def quickdraw(self):
         for unit in self.units:
             if unit.type == UnitType.OUTLAW:
-                for adjacent in self.get_adjacent_positions(unit.position):
-                    for crew in self.crews:
-                        if not self.my_id == crew.id:
-                            for other in crew.units:
-                                if other.type == UnitType.OUTLAW:
-                                    if adjacent == other.position:
-                                        return [UnitAction(UnitActionType.ATTACK, unit.id, adjacent)]
-
+                for adjacent, crew in zip(self.get_adjacent_positions(unit.position), self.crews):
+                    if not self.my_id == crew.id:
+                        for other in crew.units:
+                            if other.type == UnitType.OUTLAW and self.blitzium > 50 and adjacent == other.position:
+                                return [UnitAction(UnitActionType.ATTACK, unit.id, adjacent)]
         return []
 
 
