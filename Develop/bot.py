@@ -148,7 +148,7 @@ class Bot:
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
-                                        if self.position_is_free(adjacent):
+                                        if adjacent in self.in_range:
                                             enemy_miners.append(adjacent)
         return enemy_miners
 
@@ -157,14 +157,14 @@ class Bot:
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
-                for crew in self.crews :
+                for crew in self.crews:
                     if not self.my_id == crew.id:
                         for unit in crew.units:
                             if unit.type == UnitType.OUTLAW:
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
-                                        if self.position_is_free(adjacent):
+                                        if adjacent in self.in_range:
                                             enemy_outlaws.append(adjacent)
         return enemy_outlaws
 
@@ -253,8 +253,7 @@ class Bot:
         unit_pos = []
         for crew in crews:
             for unit in crew.units:
-                if unit.path == []:
-                    unit_pos += [unit.position]
+                unit_pos += [unit.position]
 
         while unexplored:
             exploring, unexplored = unexplored[0], unexplored[1:]
