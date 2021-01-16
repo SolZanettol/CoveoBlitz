@@ -259,17 +259,21 @@ class Bot:
 
         return has_cash and has_more_spots and have_more_time #and (not maxed_out)
 
-    def per_tick_value(self, source):
-        distance = self.get_manhattan_distance(source.position, self.my_crew.homeBase)
-        if not source.blitzium: return 0
-        return (2*distance) / 25
+    def per_tick_value(self, position, value):
+        distance = self.get_manhattan_distance(position, self.my_crew.homeBase)
+        if not value: return 0
+        return (2*distance) / value
 
     def should_buy_cart(self):
         has_cash = self.blitzium >= self.my_crew.prices.CART
         maxed_out = len(self.get_units_by_type(UnitType.CART)) >= self.MAX_CART_AMOUNT
         have_more_time = self.my_crew.prices.CART * 2 < (self.total_ticks - self.current_tick)
-        targetCarts = sum([self.per_tick_value(source) for source in self.game_map.depots+self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
-        print(targetCarts)
+        
+        carts_to_clear_sources = 1
+        # carts_to_clear_sources = sum([self.per_tick_value(source.position, source.blitzium/2) for source in self.game_map.depots if not self.is_in_enemy_zone(source.position)])
+        carts_to_clear_miners = sum([self.per_tick_value(source.position, 25) for source in self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
+        targetCarts = carts_to_clear_miners + carts_to_clear_sources
+
         has_enough_carts = targetCarts < len(self.get_units_by_type(UnitType.CART))
 
         return has_cash and have_more_time and (not has_enough_carts) #and (not maxed_out)
