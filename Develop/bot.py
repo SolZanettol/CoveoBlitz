@@ -55,14 +55,13 @@ class Bot:
         if game_message.tick == 0:
             actions += [BuyAction(UnitType.CART)]
 
-        if self.should_buy_cart():
-            actions.append(BuyAction(UnitType.CART))
-        if self.should_buy_miner():
-            actions.append(BuyAction(UnitType.MINER))
-
-        if(self.blitzium >= 200 + self.my_crew.prices.OUTLAW and self.outlaws_available > 0):
+        if self.should_buy_outlaw():
             actions.append(BuyAction(UnitType.OUTLAW))
-            self.outlaws_available -=1
+            self.outlaws_available -= 1
+        elif self.should_buy_cart():
+            actions.append(BuyAction(UnitType.CART))
+        elif self.should_buy_miner():
+            actions.append(BuyAction(UnitType.MINER))
 
         return actions
 
@@ -285,6 +284,19 @@ class Bot:
         has_enough_carts = targetCarts < len(self.get_units_by_type(UnitType.CART))
 
         return has_cash and have_more_time and (not has_enough_carts) #and (not maxed_out)
+
+    def should_buy_outlaw(self):
+        if self.outlaws_available > 0:
+            if self.blitzium >= 200 + self.my_crew.prices.OUTLAW or (self.blitzium >= self.my_crew.prices.OUTLAW and self.has_challenger()):
+                return True
+        return False
+
+    def has_challenger(self):
+        for crew in self.crews:
+            for unit in crew.units:
+                if unit.type == UnitType.OUTLAW and crew.id != self.my_id:
+                    return True
+        return False
 
     def get_in_range(self, my_crew, crews, game_map):
         explored = [my_crew.homeBase] + self.get_adjacent_positions(my_crew.homeBase)
