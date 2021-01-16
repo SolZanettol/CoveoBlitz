@@ -136,9 +136,8 @@ class Bot:
         closest = self.get_closest_position(init_position, victims)
         if closest is None:
             return None
-        for adj in self.get_adjacent_positions(closest):
-            if adj in self.in_range:
-                return adj
+        else:
+            return closest
 
     def get_enemy_miners(self):
         enemy_miners = []
@@ -149,7 +148,7 @@ class Bot:
                     if not self.my_id == crew.id:
                         for unit in crew.units:
                             if unit.type == UnitType.MINER:
-                                if position == unit.position:
+                                if position == unit.position and not self.is_in_enemy_zone(position):
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
                                         if adjacent in self.in_range:
