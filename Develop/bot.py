@@ -269,8 +269,6 @@ class Bot:
         n_minables = len(self.get_minable_squares())
         n_dispatched = sum([1 for unit in self.get_units_by_type(UnitType.MINER) if unit.path])
         has_more_spots = n_minables > n_dispatched
-        print(n_minables)
-        print(n_dispatched)
         return has_cash and has_more_spots and have_more_time #and (not maxed_out)
 
     def per_tick_value(self, position, value):
