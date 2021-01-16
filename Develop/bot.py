@@ -237,7 +237,8 @@ class Bot:
         unit_pos = []
         for crew in crews:
             for unit in crew.units:
-                unit_pos += [unit.position]
+                if unit.path == []:
+                    unit_pos += [unit.position]
 
         while unexplored:
             exploring, unexplored = unexplored[0], unexplored[1:]
