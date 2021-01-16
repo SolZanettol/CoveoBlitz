@@ -9,9 +9,9 @@ sys.path.append('./Develop')
 import application
 
 async def main(loop):
-    n = 2
+    n = 4
     delay = 100
-    game_map = maps.dp[11]
+    game_map = maps.qp[2]
     
     print('Running docker commands....')
     os.system(f'powershell docker container stop $(docker container ls -q)')

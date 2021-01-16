@@ -63,6 +63,7 @@ class Bot:
                 list(filter(lambda unit: unit.type == UnitType.OUTLAW, self.units))) < self.MAX_OUTLAW_AMOUNT):
             actions.append(BuyAction(UnitType.OUTLAW))
 
+        print(actions)
         return actions
 
     def get_random_position(self, map_size: int) -> Position:
@@ -186,19 +187,18 @@ class Bot:
         if unit.blitzium == self.rules.MAX_CART_CARGO:
             return self.drop_home(unit)
 
+        depot_positions_in_range = []
         depot_positions = []
         for depot in self.game_map.depots:
+            if depot.position in self.in_range:
+                depot_positions_in_range.append(depot.position)
             depot_positions.append(depot.position)
 
         for adjacent in self.get_adjacent_positions(unit.position):
-            try:
-                if adjacent in depot_positions:
-                    return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
-            except:
-                pass
+            if adjacent in depot_positions:
+                return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
 
-        target = None
-        closest_depot = self.get_closest_position(unit.position, depot_positions)
+        closest_depot = self.get_closest_position(unit.position, depot_positions_in_range)
 
         if closest_depot is not None:
             for adj in self.get_adjacent_positions(closest_depot):
