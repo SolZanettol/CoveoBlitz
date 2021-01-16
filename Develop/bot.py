@@ -77,6 +77,15 @@ class Bot:
 
         return UnitAction(UnitActionType.MOVE, unit.id, self.get_adjacent_positions(my_crew.homeBase)[0])
 
+    def is_in_enemy_zone(self, position, crews, my_id):
+        for crew in crews:
+            if crew.id == my_id:
+                continue
+            if position.x >= crew.homeBase.x - 3 and position.x <= crew.homeBase.x + 3 \
+                    and position.y >= crew.homeBase.y - 3 and position.y <= crew.homeBase.y + 3:
+                return True
+        return False
+
 
 
 
