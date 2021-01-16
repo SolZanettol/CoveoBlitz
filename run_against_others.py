@@ -4,12 +4,19 @@ import json
 import sys
 import os
 import maps
+import importlib
 
-sys.path.append('./Develop')
-import application
+def importAppFromFolder(folder):
+    sys.path.append(folder)
+    module = importlib.import_module('application')
+    sys.path.remove(folder)
+    return module
+
+appDev = importAppFromFolder('./Develop')
 
 async def main(loop):
-    n = 2
+    bots = ['Dev2']
+    n = len(bots) + 1
     delay = 100
     game_map = maps.dp[0]
     
@@ -20,8 +27,11 @@ async def main(loop):
 
     await asyncio.sleep(1)
     tasks = []
-    for i in range(n):
-        tasks.append(loop.create_task(application.run(f'Develop-{i}')))
+    tasks.append(loop.create_task(appDev.run('Develop')))
+    for name in bots:
+        folder = f'./Bots/{name}'
+        module = importAppFromFolder(folder)
+        tasks.append(loop.create_task(module.run(f'{name}')))
 
     while not all(map(lambda x: x.done(), tasks)):
         await asyncio.sleep(1)
@@ -29,3 +39,5 @@ async def main(loop):
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop))
+    
+
