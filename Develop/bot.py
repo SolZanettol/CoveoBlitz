@@ -46,8 +46,7 @@ class Bot:
                 list(filter(lambda unit: unit.type == UnitType.CART, self.units))) < self.MAX_CART_AMOUNT and len(
                 list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) == self.MAX_MINER_AMOUNT):
             actions.append(BuyAction(UnitType.CART))
-        if (self.blitzium >= self.my_crew.prices.MINER and len(
-                list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) < self.MAX_MINER_AMOUNT):
+        if self.should_buy_miner():
             actions.append(BuyAction(UnitType.MINER))
 
         return actions
@@ -174,3 +173,12 @@ class Bot:
                     and crew.homeBase.y - 3 <= position.y <= crew.homeBase.y + 3:
                 return True
         return False
+
+    def get_units_by_type(self, t):
+        return list(filter(lambda unit: unit.type == t, self.units))
+
+    def should_buy_miner(self):
+        has_cash = self.blitzium >= self.my_crew.prices.MINER
+        maxed_out = len(self.get_units_by_type(UnitType.MINER)) >= self.MAX_MINER_AMOUNT
+        has_more_spots = self.get_closest_minable_square(self.my_crew.homeBase)
+        return has_cash and has_more_spots #and (not maxed_out)
