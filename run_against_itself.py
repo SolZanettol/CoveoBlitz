@@ -11,7 +11,7 @@ import application
 async def main(loop):
     n = 4
     delay = 10
-    game_map = maps.qp[13]
+    game_map = maps.qp[1]
     ticks = 1000
 
     print('Running docker commands....')

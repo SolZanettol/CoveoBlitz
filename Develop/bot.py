@@ -129,10 +129,10 @@ class Bot:
                                             if adjacent == other.position and not self.is_in_enemy_zone(adjacent):
                                                 return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
         enemy = self.get_victim(unit.position)
-        if not enemy == None:
+        if enemy is not None:
             return UnitAction(UnitActionType.MOVE, unit.id, enemy)
         else:
-            return UnitAction(UnitActionType.MOVE, unit.id, unit.position)
+            return UnitAction(UnitActionType.MOVE, unit.id, self.get_random_position(self.game_map.get_map_size()))
 
     def get_victim(self, init_position):
         enemy_outlaws = self.get_enemy_outlaws()
@@ -173,7 +173,7 @@ class Bot:
                 for crew in self.crews:
                     if not self.my_id == crew.id:
                         for unit in crew.units:
-                            if unit.type == UnitType.OUTLAW:
+                            if unit.type == UnitType.OUTLAW and self.blitzium > 50:
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
@@ -361,8 +361,8 @@ class Bot:
         map_matrix_int = map_matrix.astype(int)
         for crew in self.crews:
             for unit in crew.units:
-                if not unit.path:
-                    map_matrix_int[unit.position.x, unit.position.y] = 1
+                if not unit.path and unit.position != self.my_crew.homeBase:
+                    map_matrix_int[unit.position.x, unit.position.y] = 255
             if crew.id == self.my_id:
                 continue
             else:
@@ -374,7 +374,6 @@ class Bot:
                 for x in range(limitx1, limitx2+1, 1):
                     for y in range(limity1, limity2+1, 1):
                         map_matrix_int[x, y] = 255
-
         return map_matrix_int
 
     def get_in_range(self, my_crew, crews, game_map):
