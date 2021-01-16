@@ -4,7 +4,8 @@ from game_message import GameMessage, Position, Crew, TileType, UnitType
 from game_command import Action, UnitAction, UnitActionType, BuyAction
 
 import random
-
+import numpy as np
+import cv2
 
 class Bot:
 
@@ -36,6 +37,7 @@ class Bot:
         self.total_ticks = game_message.totalTick
         self.blitzium = self.my_crew.blitzium
         self.units = self.my_crew.units
+        magic = self.flood_fill()
 
         # insert quickdraw here
         actions: List[Action] = self.quickdraw()
@@ -305,29 +307,66 @@ class Bot:
                     return True
         return False
 
-    def get_in_range(self, my_crew, crews, game_map):
-        explored = [my_crew.homeBase] + self.get_adjacent_positions(my_crew.homeBase)
-        unexplored = self.get_adjacent_positions(my_crew.homeBase)
-        in_range = [my_crew.homeBase]
-
-        unit_pos = []
-        for crew in crews:
-            for unit in crew.units:
-                if not unit.path:
-                    unit_pos += [unit.position]
-
-        while unexplored:
-            exploring, unexplored = unexplored[0], unexplored[1:]
-
-            try:
-                if game_map.get_tile_type_at(exploring) == TileType.EMPTY:
-                    if exploring not in unit_pos and not self.is_in_enemy_zone(exploring):
-                        in_range += [exploring]
-                        for next in self.get_adjacent_positions(exploring):
-                            if next not in explored:
-                                explored += [next]
-                                unexplored += [next]
-            except:
+    def flood_fill(self):
+        map_matrix = np.asarray(self.game_map.tiles)
+        map_matrix = np.where(map_matrix =='WALL', 255, map_matrix)
+        map_matrix = np.where(map_matrix == 'MINE', 255, map_matrix)
+        map_matrix = np.where(map_matrix == 'EMPTY', 0, map_matrix)
+        map_matrix = np.where(map_matrix == 'BASE', 255, map_matrix)
+        map_matrix_int = map_matrix.astype(int)
+        for crew in self.crews:
+            #for unit in crew.units:
+                #if not unit.path:
+                    #map_matrix_int[unit.position.x, unit.position.y] = 1
+            if crew.id == self.my_id:
                 continue
+            else:
+                map_matrix_int[crew.homeBase.x, crew.homeBase.y] = 255
+                limitx1 = max(0, crew.homeBase.x-3)
+                limitx2 = min(self.game_map.get_map_size()-1, crew.homeBase.x+3)
+                limity1 = max(0, crew.homeBase.y-3)
+                limity2 = min(self.game_map.get_map_size()-1, crew.homeBase.y + 3)
+                for x in range(limitx1, limitx2+1, 1):
+                    for y in range(limity1, limity2+1, 1):
+                        map_matrix_int[x, y] = 255
 
+        return map_matrix_int
+
+    def get_in_range(self, my_crew, crews, game_map):
+        in_range= []
+        matrix_np = self.flood_fill()
+        mask = np.zeros(np.asarray(matrix_np.shape)+2, dtype=np.uint8)
+        start_pt = (my_crew.homeBase.x, my_crew.homeBase.y)
+        help_me = cv2.floodFill(matrix_np, mask, start_pt, 255)
+        mask = mask[1:-1, 1:-1]
+
+        for x in range(0, mask.shape[0]):
+            for y in range(0, mask.shape[1]):
+                if mask[x,y] == 1:
+                    in_range.append(Position(x, y))
+
+
+        # explored = [my_crew.homeBase] + self.get_adjacent_positions(my_crew.homeBase)
+        # unexplored = self.get_adjacent_positions(my_crew.homeBase)
+        # in_range = [my_crew.homeBase]
+        #
+        # unit_pos = []
+        # for crew in crews:
+        #     for unit in crew.units:
+        #         if not unit.path:
+        #             unit_pos += [unit.position]
+        #
+        # while unexplored:
+        #     exploring, unexplored = unexplored[0], unexplored[1:]
+        #
+        #     try:
+        #         if game_map.get_tile_type_at(exploring) == TileType.EMPTY:
+        #             if exploring not in unit_pos and not self.is_in_enemy_zone(exploring):
+        #                 in_range += [exploring]
+        #                 for next in self.get_adjacent_positions(exploring):
+        #                     if next not in explored:
+        #                         explored += [next]
+        #                         unexplored += [next]
+        #     except:
+        #         continue
         return in_range
