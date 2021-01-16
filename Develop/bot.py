@@ -33,15 +33,17 @@ class Bot:
         self.units = self.my_crew.units
 
         # insert quickdraw here
+        actions: List[Action] = [self.quickdraw()]
+        if not actions == []:
+            return actions
 
         self.in_range = self.get_in_range(self.my_crew, self.crews, self.game_map)
 
-        actions: List[Action] = [self.get_miner_action(unit) for unit in self.units if
-                                 unit.type == UnitType.MINER]
-
+        miner_actions: List[Action] = [self.get_miner_action(unit) for unit in self.units if
+                                       unit.type == UnitType.MINER]
+        actions.extend(miner_actions)
         cart_actions: List[Action] = [self.get_cart_action(unit) for unit in
                                       self.units if unit.type == UnitType.CART]
-        print(cart_actions)
         actions.extend(cart_actions)
         outlaw_actions: List[Action] = [self.get_outlaw_action(unit) for unit in
                                         self.units if unit.type == UnitType.OUTLAW]
@@ -165,6 +167,20 @@ class Bot:
                                         if self.position_is_free(adjacent):
                                             ennemy_outlaws.append(adjacent)
         return ennemy_outlaws
+
+    def quickdraw(self):
+        for unit in self.units:
+            if unit.type == UnitType.OUTLAW:
+                for adjacent in self.get_adjacent_positions(unit.position):
+                    try:
+                        for crew in self.crews :
+                            if not self.my_id == crew.id:
+                                for other in crew.units:
+                                    if other.type == UnitType.OUTLAW:
+                                        if adjacent == other.position:
+                                            return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
+                    except:
+                        pass
 
 
     def get_cart_action(self, unit):
