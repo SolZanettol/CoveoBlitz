@@ -16,9 +16,12 @@ class Bot:
         rules = game_message.rules
         my_id = game_message.crewId
         MAX_MINER_AMOUNT = 4
+        MAX_CART_AMOUNT = 1
 
         actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_id, rules) for unit in my_crew.units]
 
+        if(my_crew.blitzium >= my_crew.prices.CART and len(list(filter(lambda unit: unit.type == UnitType.CART, my_crew.units))) < MAX_CART_AMOUNT) :
+            actions.append(BuyAction(UnitType.CART))
         if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
             actions.append(BuyAction(UnitType.MINER))
 
@@ -84,6 +87,37 @@ class Bot:
         minable = self.get_closest_minable_square(unit.position, map, crews, my_id)
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
+
+
+    def get_cart_action(self, unit, map, crews, my_crew, rules, my_id):
+        if unit.blitzium == rules.MAX_CART_CARGO:
+            return self.drop_home((unit, my_crew, map, crews, my_id))
+
+        depot_positions = []
+        for depot in map.depots:
+            depot_positions.append(depot.position)
+
+        for adjacent in self.get_adjacent_positions(unit.position):
+            try:
+                if depot_positions.contains(adjacent) :
+                    return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
+            except:
+                pass
+
+        closest_depot = self.get_closest_position(depot_positions)
+        target = closest_depot if closest_depot is not None else self.get_closest_friendly_miner(unit.position, my_crew)
+        return UnitAction(UnitActionType.MOVE, unit.id, target)
+
+    def get_closest_friendly_miner(self, initial_position, my_crew):
+        miner_positions =[]
+        for unit in my_crew.units:
+            if unit.type == UnitType.MINER:
+                miner_positions.append(unit.position)
+        if miner_positions is not []:
+            target = self.get_closest_position(initial_position, miner_positions)
+        else:
+            target = self.get_random_position(map.get_map_size())
+        return target
 
     def drop_home(self, unit, my_crew, map, crews, my_id):
         if my_crew.homeBase in self.get_adjacent_positions(unit.position):
