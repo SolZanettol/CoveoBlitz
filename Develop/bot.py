@@ -14,9 +14,10 @@ class Bot:
         crews = game_message.crews
         game_map = game_message.map
         rules = game_message.rules
+        my_id = game_message.crewId
         MAX_MINER_AMOUNT = 4
 
-        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_crew ,rules) for unit in my_crew.units]
+        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_crew, my_id, rules) for unit in my_crew.units]
 
         if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
             actions.append(BuyAction(UnitType.MINER))
@@ -26,13 +27,6 @@ class Bot:
 
     def get_random_position(self, map_size: int) -> Position:
         return Position(random.randint(0, map_size - 1), random.randint(0, map_size - 1))
-
-    def get_miners_positions(self, game_message: GameMessage):
-        miners_positions = []
-        for unit in game_message.get_crews_by_id()[game_message.crewId]:
-            if unit.type == UnitType.MINER:
-                miners_positions.append(unit.position)
-        return miners_positions
 
     def get_closest_position(self, initial_position, potential_list):
         closest_point = Position(0, 0)
@@ -44,7 +38,7 @@ class Bot:
                 closest_point_distance = distance
         return closest_point
 
-    def get_closest_minable_square(self, init_position, map, crews):
+    def get_closest_minable_square(self, init_position, map, crews, my_id):
         minables = []
         for x in range(map.get_map_size()):
             for y in range(map.get_map_size()):
@@ -52,22 +46,9 @@ class Bot:
                 if map.get_tile_type_at(position) == TileType.MINE:
                     adjacents = self.get_adjacent_positions(position)
                     for adjacent in adjacents:
-                        if self.position_is_free(map, crews, adjacent):
+                        if self.position_is_free(map, crews, adjacent, my_id):
                             minables.append(adjacent)
         return self.get_closest_position(init_position, minables)
-
-
-    def get_minable_square(self, map, crews):
-        for x in range(map.get_map_size()):
-            for y in range(map.get_map_size()):
-                position = Position(x, y)
-                if map.get_tile_type_at(position) == TileType.MINE:
-                    adjacents = self.get_adjacent_positions(position)
-                    for adjacent in adjacents:
-                        if self.position_is_free(map, crews, adjacent):
-                            return adjacent
-        return None
-
 
     def get_adjacent_positions(self, position):
         return [Position(position.x, position.y + 1),
@@ -75,7 +56,10 @@ class Bot:
                 Position(position.x, position.y -1),
                 Position(position.x + 1, position.y)]
 
-    def position_is_free(self, map, crews, position):
+    def position_is_free(self, map, crews, position, my_id):
+        if self.is_in_enemy_zone(position, crews, my_id):
+            return False
+
         for crew in crews:
             for unit in crew.units:
                 if unit.position == position:
@@ -87,7 +71,7 @@ class Bot:
 
         return map.get_tile_type_at(position) == TileType.EMPTY
 
-    def get_miner_action(self, unit, map, crews, my_crew, rules):
+    def get_miner_action(self, unit, map, crews, my_crew, my_id, rules):
         if unit.blitzium == rules.MAX_MINER_MOVE_CARGO:
             return self.drop_home(unit, my_crew)
 
@@ -98,8 +82,7 @@ class Bot:
             except:
                 pass
 
-        print(unit.position)
-        minable = self.get_closest_minable_square(unit.position, map, crews)
+        minable = self.get_closest_minable_square(unit.position, map, crews, my_id)
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
@@ -113,8 +96,8 @@ class Bot:
         for crew in crews:
             if crew.id == my_id:
                 continue
-            if position.x >= crew.homeBase.x - 3 and position.x <= crew.homeBase.x + 3 \
-                    and position.y >= crew.homeBase.y - 3 and position.y <= crew.homeBase.y + 3:
+            if crew.homeBase.x - 3 <= position.x <= crew.homeBase.x + 3 \
+                    and crew.homeBase.y - 3 <= position.y <= crew.homeBase.y + 3:
                 return True
         return False
 
