@@ -1,7 +1,7 @@
 from typing import List
 
 from game_message import GameMessage, Position, Crew, TileType, UnitType
-from game_command import Action, UnitAction, UnitActionType
+from game_command import Action, UnitAction, UnitActionType, BuyAction
 
 import random
 
@@ -9,20 +9,18 @@ import random
 class Bot:
 
     def get_next_move(self, game_message: GameMessage) -> List[Action]:
-        """
-        Here is where the magic happens, for now the moves are random. I bet you can do better ;)
-
-        No path finding is required, you can simply send a destination per unit and the game will move your unit towards
-        it in the next turns.
-        """
+        
         my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
-
-
         crews = game_message.crews
         game_map = game_message.map
         rules = game_message.rules
+        MAX_MINER_AMOUNT = 4
 
-        actions: List[UnitAction] = [self.get_miner_action(unit, game_map, crews, my_crew ,rules) for unit in my_crew.units]
+        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_crew ,rules) for unit in my_crew.units]
+
+        if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
+            actions.append(BuyAction(UnitType.MINER))
+            print(len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))))
 
         return actions
 

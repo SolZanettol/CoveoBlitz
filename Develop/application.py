@@ -11,7 +11,7 @@ from game_message import GameMessage, Crew
 from game_command import UnitActionType
 
 
-async def run():
+async def run(name="MyBot"):
     uri = "ws://127.0.0.1:8765"
 
     async with websockets.connect(uri) as websocket:
@@ -19,7 +19,7 @@ async def run():
         if "TOKEN" in os.environ:
             await websocket.send(json.dumps({"type": "REGISTER", "token": os.environ["TOKEN"]}))
         else:
-            await websocket.send(json.dumps({"type": "REGISTER", "crewName": "MyBot"}))
+            await websocket.send(json.dumps({"type": "REGISTER", "crewName": name}))
 
         await game_loop(websocket=websocket, bot=bot)
 
