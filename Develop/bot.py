@@ -233,13 +233,14 @@ class Bot:
         if self.my_crew.homeBase in self.get_adjacent_positions(unit.position):
             return UnitAction(UnitActionType.DROP, unit.id, self.my_crew.homeBase)
 
+        adjs = []
         for adj in self.get_adjacent_positions(self.my_crew.homeBase):
             if adj in self.in_range and adj not in [u.position for u in self.units]:
-                return UnitAction(UnitActionType.MOVE, unit.id, adj)
+                adjs += [adj]
 
-        for adj in self.get_adjacent_positions(self.my_crew.homeBase):
-            if adj in self.in_range:
-                return UnitAction(UnitActionType.MOVE, unit.id, adj)
+        target = self.get_closest_position(unit.position, adjs)
+        return UnitAction(UnitActionType.MOVE, unit.id, target) if target is not None else self.get_random_position(self.game_map.get_map_size())
+
 
     def drop_miner_cargo(self, unit):
         for adj in self.get_adjacent_positions(unit.position):
@@ -269,8 +270,6 @@ class Bot:
         n_minables = len(self.get_minable_squares())
         n_dispatched = sum([1 for unit in self.get_units_by_type(UnitType.MINER) if unit.path])
         has_more_spots = n_minables > n_dispatched
-        print(n_minables)
-        print(n_dispatched)
         return has_cash and has_more_spots and have_more_time #and (not maxed_out)
 
     def per_tick_value(self, position, value):
@@ -321,16 +320,14 @@ class Bot:
             exploring, unexplored = unexplored[0], unexplored[1:]
 
             try:
-                self.game_map.validate_tile_exists(exploring)
+                if game_map.get_tile_type_at(exploring) == TileType.EMPTY:
+                    if exploring not in unit_pos and not self.is_in_enemy_zone(exploring):
+                        in_range += [exploring]
+                        for next in self.get_adjacent_positions(exploring):
+                            if next not in explored:
+                                explored += [next]
+                                unexplored += [next]
             except:
                 continue
-
-            if game_map.get_tile_type_at(exploring) in [TileType.EMPTY, TileType.BASE]:
-                if exploring not in unit_pos and not self.is_in_enemy_zone(exploring):
-                    in_range += [exploring]
-                    for next in self.get_adjacent_positions(exploring):
-                        if next not in explored:
-                            explored += [next]
-                            unexplored += [next]
 
         return in_range
