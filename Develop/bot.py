@@ -16,11 +16,17 @@ class Bot:
         rules = game_message.rules
         my_id = game_message.crewId
         MAX_MINER_AMOUNT = 4
+        MAX_OUTLAW_AMOUNT = 1
 
         actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_crew, my_id, rules) for unit in my_crew.units]
 
+        
+
         if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
             actions.append(BuyAction(UnitType.MINER))
+
+        #if(my_crew.blitzium >= 250 and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_OUTLAW_AMOUNT) :
+        #    actions.append(BuyAction(UnitType.OUTLAW))
 
         return actions
 
@@ -84,6 +90,9 @@ class Bot:
         minable = self.get_closest_minable_square(unit.position, map, crews, my_id)
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
+
+    #def get_outlaw_action(self, unit, map, crews, my_crews, my_id) :
+        
 
     def drop_home(self, unit, my_crew, map):
         if my_crew.homeBase in self.get_adjacent_positions(unit.position):
