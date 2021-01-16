@@ -361,8 +361,8 @@ class Bot:
         map_matrix_int = map_matrix.astype(int)
         for crew in self.crews:
             for unit in crew.units:
-                if not unit.path:
-                    map_matrix_int[unit.position.x, unit.position.y] = 1
+                if not unit.path and unit.position != self.my_crew.homeBase:
+                    map_matrix_int[unit.position.x, unit.position.y] = 255
             if crew.id == self.my_id:
                 continue
             else:
@@ -374,7 +374,6 @@ class Bot:
                 for x in range(limitx1, limitx2+1, 1):
                     for y in range(limity1, limity2+1, 1):
                         map_matrix_int[x, y] = 255
-
         return map_matrix_int
 
     def get_in_range(self, my_crew, crews, game_map):
