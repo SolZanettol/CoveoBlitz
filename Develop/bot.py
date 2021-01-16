@@ -17,6 +17,7 @@ class Bot:
 
         actions: List[Action] = [BuyAction(UnitType.CART)]
 
+
         actions.extend(UnitAction(UnitActionType.MOVE,
                                                 unit.id,
                                                 self.get_random_position(
@@ -27,4 +28,12 @@ class Bot:
     def get_random_position(self, map_size: int) -> Position:
         return Position(random.randint(0, map_size - 1), random.randint(0, map_size - 1))
 
-    def get_cart_
+    def go_to_action(self, unit, objective) -> Action:
+            return UnitAction(UnitActionType.MOVE, unit.id, objective)
+
+    def get_cart_positions(self, game_message: GameMessage):
+        carts_positions = []
+        for unit in game_message.get_crews_by_id()[game_message.crewId]:
+            if unit.type == UnitType.CART:
+                carts_positions.append(unit.position)
+        return carts_positions
