@@ -16,14 +16,13 @@ class Bot:
         rules = game_message.rules
         my_id = game_message.crewId
         MAX_MINER_AMOUNT = 5
-        MAX_CART_AMOUNT = 3
+        MAX_CART_AMOUNT = 5
 
         actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_id, rules) for unit in my_crew.units if
                                  unit.type == UnitType.MINER]
 
         cart_actions: List[Action] = [self.get_cart_action(unit, game_map, crews, my_crew, rules, my_id) for unit in
                                       my_crew.units if unit.type == UnitType.CART]
-        print(cart_actions)
         actions.extend(cart_actions)
         if game_message.tick == 0:
             actions += [BuyAction(UnitType.CART)]
@@ -114,15 +113,20 @@ class Bot:
             except:
                 pass
 
+        target = None
         closest_depot = self.get_closest_position(unit.position, depot_positions)
+
+        if closest_depot is not None:
+            for adj in self.get_adjacent_positions(closest_depot):
+                if self.position_is_free(map, crews, adj, my_id):
+                    return UnitAction(UnitActionType.MOVE, unit.id, adj)
+
         closest_miner_position = self.get_closest_friendly_miner(unit.position, my_crew, my_id, crews, map)
 
-        target = closest_depot if closest_depot is not None else closest_miner_position
-        return UnitAction(UnitActionType.MOVE, unit.id, target)
+        return UnitAction(UnitActionType.MOVE, unit.id, closest_miner_position)
 
     def get_closest_friendly_miner(self, initial_position, my_crew, my_id, crews, map):
         miner_positions = []
-        target = self.get_random_position(map.get_map_size())
         for unit in my_crew.units:
             if unit.type == UnitType.MINER:
                 miner_positions.append(unit.position)
@@ -131,8 +135,8 @@ class Bot:
             adjacents = self.get_adjacent_positions(closest_miner)
             for adjacent in adjacents:
                 if self.position_is_free(map, crews, adjacent, my_id):
-                    target = adjacent
-        return target
+                    return adjacent
+        return self.get_random_position(map.get_map_size())
 
     def drop_home(self, unit, my_crew, map, crews, my_id):
         if my_crew.homeBase in self.get_adjacent_positions(unit.position):
