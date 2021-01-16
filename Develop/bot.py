@@ -164,9 +164,9 @@ class Bot:
         return False
 
     def get_in_range(self, my_crew, crews, game_map):
-        explored = [my_crew.homeBase]
-        unexplored = [my_crew.homeBase]
-        in_range = []
+        explored = [my_crew.homeBase] + self.get_adjacent_positions(my_crew.homeBase)
+        unexplored = self.get_adjacent_positions(my_crew.homeBase)
+        in_range = [my_crew.homeBase]
 
         unit_pos = []
         for crew in crews:
