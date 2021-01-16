@@ -72,7 +72,7 @@ class Bot:
         closest_point = None
         closest_point_distance = 100000000
         for position in potential_list:
-            distance = (position.x - initial_position.x) ** 2 + (position.y - initial_position.y) ** 2
+            distance = self.get_manhattan_distance(position, initial_position)
             if distance <= closest_point_distance:
                 closest_point = Position(position.x, position.y)
                 closest_point_distance = distance
@@ -134,6 +134,8 @@ class Bot:
             victims = enemy_miners
 
         closest = self.get_closest_position(init_position, victims)
+        if closest is None:
+            return None
         for adj in self.get_adjacent_positions(closest):
             if adj in self.in_range:
                 return adj
