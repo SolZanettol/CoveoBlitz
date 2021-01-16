@@ -20,6 +20,7 @@ class Bot:
         self.in_range = None
         self.current_tick = None
         self.total_ticks = None
+        self.mine_dispatched = {}
         self.outlaws_available = 1
         self.MAX_MINER_AMOUNT = 5
         self.MAX_CART_AMOUNT = 5
@@ -78,7 +79,7 @@ class Bot:
                 closest_point_distance = distance
         return closest_point
 
-    def get_closest_minable_square(self, init_position):
+    def get_minable_squares(self):
         minables = []
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
@@ -88,7 +89,10 @@ class Bot:
                     for adjacent in adjacents:
                         if adjacent in self.in_range:
                             minables.append(adjacent)
-        return self.get_closest_position(init_position, minables)
+        return minables
+
+    def get_closest_minable_square(self, init_position):
+        return self.get_closest_position(init_position, self.get_minable_squares())
 
     def get_adjacent_positions(self, position):
         return [Position(position.x, position.y + 1),
@@ -101,11 +105,8 @@ class Bot:
             return self.drop_miner_cargo(unit)
 
         for adjacent in self.get_adjacent_positions(unit.position):
-            try:
-                if self.game_map.get_tile_type_at(adjacent) == TileType.MINE:
-                    return UnitAction(UnitActionType.MINE, unit.id, adjacent)
-            except:
-                pass
+            if self.game_map.get_tile_type_at(adjacent) == TileType.MINE:
+                return UnitAction(UnitActionType.MINE, unit.id, adjacent)
 
         minable = self.get_closest_minable_square(unit.position)
         target = minable if minable is not None else self.get_random_position(self.game_map.get_map_size())
@@ -263,9 +264,13 @@ class Bot:
     def should_buy_miner(self):
         has_cash = self.blitzium >= self.my_crew.prices.MINER
         maxed_out = len(self.get_units_by_type(UnitType.MINER)) >= self.MAX_MINER_AMOUNT
-        has_more_spots = self.get_closest_minable_square(self.my_crew.homeBase)
         have_more_time = self.my_crew.prices.MINER * 3 < (self.total_ticks - self.current_tick)
 
+        n_minables = len(self.get_minable_squares())
+        n_dispatched = sum([1 for unit in self.get_units_by_type(UnitType.MINER) if unit.path])
+        has_more_spots = n_minables > n_dispatched
+        print(n_minables)
+        print(n_dispatched)
         return has_cash and has_more_spots and have_more_time #and (not maxed_out)
 
     def per_tick_value(self, position, value):
@@ -279,9 +284,7 @@ class Bot:
         have_more_time = self.my_crew.prices.CART * 2 < (self.total_ticks - self.current_tick)
         
         total_drops = sum([depot.blitzium for depot in self.game_map.depots])
-        print(total_drops)
         carts_to_clear_sources = 1 if total_drops >= 50 else 0
-        print(carts_to_clear_sources)
         # carts_to_clear_sources = sum([self.per_tick_value(source.position, source.blitzium/2) for source in self.game_map.depots if not self.is_in_enemy_zone(source.position)])
         carts_to_clear_miners = sum([self.per_tick_value(source.position, 25) for source in self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
         targetCarts = carts_to_clear_miners + carts_to_clear_sources
