@@ -354,10 +354,10 @@ class Bot:
 
     def flood_fill(self):
         map_matrix = np.asarray(self.game_map.tiles)
-        map_matrix = np.where(map_matrix =='WALL', 255, map_matrix)
+        map_matrix = np.where(map_matrix =='WALL',  255, map_matrix)
         map_matrix = np.where(map_matrix == 'MINE', 255, map_matrix)
         map_matrix = np.where(map_matrix == 'EMPTY', 0, map_matrix)
-        map_matrix = np.where(map_matrix == 'BASE', 255, map_matrix)
+        map_matrix = np.where(map_matrix == 'BASE', 0, map_matrix)
         map_matrix_int = map_matrix.astype(int)
         for crew in self.crews:
             #for unit in crew.units:
@@ -378,10 +378,10 @@ class Bot:
         return map_matrix_int
 
     def get_in_range(self, my_crew, crews, game_map):
-        in_range= []
+        in_range = []
         matrix_np = self.flood_fill()
         mask = np.zeros(np.asarray(matrix_np.shape)+2, dtype=np.uint8)
-        start_pt = (my_crew.homeBase.x, my_crew.homeBase.y)
+        start_pt = (my_crew.homeBase.y, my_crew.homeBase.x)
         help_me = cv2.floodFill(matrix_np, mask, start_pt, 255)
         mask = mask[1:-1, 1:-1]
 
@@ -393,7 +393,7 @@ class Bot:
 
         # explored = [my_crew.homeBase] + self.get_adjacent_positions(my_crew.homeBase)
         # unexplored = self.get_adjacent_positions(my_crew.homeBase)
-        # in_range = [my_crew.homeBase]
+        # in_range2 = [my_crew.homeBase]
         #
         # unit_pos = []
         # for crew in crews:
@@ -407,7 +407,7 @@ class Bot:
         #     try:
         #         if game_map.get_tile_type_at(exploring) == TileType.EMPTY:
         #             if exploring not in unit_pos and not self.is_in_enemy_zone(exploring):
-        #                 in_range += [exploring]
+        #                 in_range2 += [exploring]
         #                 for next in self.get_adjacent_positions(exploring):
         #                     if next not in explored:
         #                         explored += [next]
