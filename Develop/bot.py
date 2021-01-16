@@ -212,6 +212,8 @@ class Bot:
         for adjacent in self.get_adjacent_positions(unit.position):
             if adjacent in depot_positions:
                 return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
+            elif adjacent == self.my_crew.homeBase and unit.blitzium != 0:
+                return UnitAction(UnitActionType.DROP, unit.id, adjacent)
 
         closest_depot = self.get_closest_position(unit.position, depot_positions_in_range)
 

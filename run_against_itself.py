@@ -9,9 +9,9 @@ sys.path.append('./Develop')
 import application
 
 async def main(loop):
-    n = 4
+    n = 2
     delay = 10
-    game_map = maps.qp[14]
+    game_map = maps.dp[2]
     ticks = 1000
 
     print('Running docker commands....')
