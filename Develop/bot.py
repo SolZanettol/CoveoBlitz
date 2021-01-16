@@ -203,11 +203,12 @@ class Bot:
                     self.get_manhattan_distance(adjacent, self.my_crew.homeBase) > self.get_manhattan_distance(unit.position, self.my_crew.homeBase) and
                     cart.blitzium == self.rules.MAX_CART_CARGO):
                     return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
-            if unit.position in self.get_adjacent_positions(self.my_crew.homeBase):
+            if unit.position in self.get_adjacent_positions(self.my_crew.homeBase) and not unit.path:
                 potential = []
                 for adj in self.get_adjacent_positions(unit.position):
                     if adj != self.my_crew.homeBase and adj in self.in_range:
                         potential += [adj]
+                if potential:
                     return UnitAction(UnitActionType.MOVE, unit.id, random.choice(potential))
 
         depot_positions_in_range = []
