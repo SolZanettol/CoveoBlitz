@@ -169,11 +169,11 @@ class Bot:
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
-                cash_totals = list(map(lambda c: c.totalBlitzium, self.crews))
+                cash_totals = list(map(lambda c: c.blitzium, self.crews))
                 for crew in self.crews:
                     if not self.my_id == crew.id:
                         for unit in crew.units:
-                            if unit.type == UnitType.OUTLAW and self.blitzium > 50 and (crew.totalBlitzium != min(cash_totals) or len(self.crews) == 2):
+                            if unit.type == UnitType.OUTLAW and self.blitzium > 50 and (crew.blitzium != min(cash_totals) or len(self.crews) == 2):
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
