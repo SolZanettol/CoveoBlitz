@@ -112,8 +112,8 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_outlaw_action(self, unit) :
-        if (len(self.crews) > 2 and self.total_ticks - self.current_tick > 250) or (len(self.crews) == 2 and self.total_ticks - self.current_tick > 150):
-            if self.blitzium > 400:
+        if (len(self.crews) > 2 and self.total_ticks - self.current_tick > 250) or (len(self.crews) == 2 and self.total_ticks - self.current_tick > 200):
+            if self.blitzium > 200:
                 for adjacent in self.get_adjacent_positions(unit.position):
                         for crew in self.crews :
                             if not self.my_id == crew.id:
@@ -289,7 +289,7 @@ class Bot:
 
     def should_buy_outlaw(self):
         if self.outlaws_available > 0:
-            if self.blitzium >= 200 + self.my_crew.prices.OUTLAW or (self.blitzium >= self.my_crew.prices.OUTLAW and self.has_challenger()):
+            if self.blitzium >= 125 + self.my_crew.prices.OUTLAW or (self.blitzium >= self.my_crew.prices.OUTLAW and self.has_challenger()):
                 return True
         return False
 
