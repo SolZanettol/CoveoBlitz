@@ -270,7 +270,10 @@ class Bot:
         maxed_out = len(self.get_units_by_type(UnitType.CART)) >= self.MAX_CART_AMOUNT
         have_more_time = self.my_crew.prices.CART * 2 < (self.total_ticks - self.current_tick)
         
-        carts_to_clear_sources = 1
+        total_drops = sum([depot.blitzium for depot in self.game_map.depots])
+        print(total_drops)
+        carts_to_clear_sources = 1 if total_drops >= 50 else 0
+        print(carts_to_clear_sources)
         # carts_to_clear_sources = sum([self.per_tick_value(source.position, source.blitzium/2) for source in self.game_map.depots if not self.is_in_enemy_zone(source.position)])
         carts_to_clear_miners = sum([self.per_tick_value(source.position, 25) for source in self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
         targetCarts = carts_to_clear_miners + carts_to_clear_sources
