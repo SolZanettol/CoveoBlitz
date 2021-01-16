@@ -139,7 +139,7 @@ class Bot:
             if adj in self.in_range:
                 return adj
 
-    def get_enemy_miners(self, init_position):
+    def get_enemy_miners(self):
         enemy_miners = []
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
