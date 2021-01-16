@@ -40,7 +40,6 @@ class Bot:
         self.total_ticks = game_message.totalTick
         self.blitzium = self.my_crew.blitzium
         self.units = self.my_crew.units
-        magic = self.flood_fill()
 
         # insert quickdraw here
         actions: List[Action] = self.quickdraw()
