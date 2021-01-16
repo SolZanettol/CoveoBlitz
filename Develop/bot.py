@@ -8,40 +8,54 @@ import random
 
 class Bot:
 
+    def __init__(self):
+        self.my_crew = None
+        self.crews = None
+        self.game_map = None
+        self.rules = None
+        self.my_id = None
+        self.my_crew = None
+        self.blitzium = None
+        self.units = None
+        self.MAX_MINER_AMOUNT = 5
+        self.MAX_CART_AMOUNT = 5
+        self.MAX_OUTLAW_AMOUNT = 1
+
+
+
     def get_next_move(self, game_message: GameMessage) -> List[Action]:
 
-        my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
-        crews = game_message.crews
-    
-        game_map = game_message.map
-        rules = game_message.rules
-        my_id = game_message.crewId
-        MAX_MINER_AMOUNT = 5
-        MAX_OUTLAW_AMOUNT = 1
-        MAX_CART_AMOUNT = 5
+        self.my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
+        self.crews = game_message.crews
+        self.game_map = game_message.map
+        self.rules = game_message.rules
+        self.my_id = game_message.crewId
+        self.blitzium = self.my_crew.blitzium
+        self.units = self.my_crew.units
 
-        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_id, rules) for unit in my_crew.units if
+
+        actions: List[Action] = [self.get_miner_action(unit) for unit in self.units if
                                  unit.type == UnitType.MINER]
 
-        cart_actions: List[Action] = [self.get_cart_action(unit, game_map, crews, my_crew, rules, my_id) for unit in
-                                      my_crew.units if unit.type == UnitType.CART]
+        cart_actions: List[Action] = [self.get_cart_action(unit) for unit in
+                                      self.units if unit.type == UnitType.CART]
         actions.extend(cart_actions)
-        outlaw_actions: List[Action] = [self.get_outlaw_action(unit, game_map, crews, my_crew, my_id, game_message) for unit in
-                                        my_crew.units if unit.type == UnitType.OUTLAW]
+        outlaw_actions: List[Action] = [self.get_outlaw_action(unit) for unit in
+                                        self.units if unit.type == UnitType.OUTLAW]
         actions.extend(outlaw_actions)
         if game_message.tick == 0:
             actions += [BuyAction(UnitType.CART)]
 
-        if (my_crew.blitzium >= my_crew.prices.CART and len(
-                list(filter(lambda unit: unit.type == UnitType.CART, my_crew.units))) < MAX_CART_AMOUNT and len(
-                list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) == MAX_MINER_AMOUNT):
+        if (self.blitzium >= self.my_crew.prices.CART and len(
+                list(filter(lambda unit: unit.type == UnitType.CART, self.units))) < self.MAX_CART_AMOUNT and len(
+                list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) == self.MAX_MINER_AMOUNT):
             actions.append(BuyAction(UnitType.CART))
-        if (my_crew.blitzium >= my_crew.prices.MINER and len(
-                list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT):
+        if (self.blitzium >= self.my_crew.prices.MINER and len(
+                list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) < self.MAX_MINER_AMOUNT):
             actions.append(BuyAction(UnitType.MINER))
 
-        if(my_crew.blitzium >= 600 and len(
-                list(filter(lambda unit: unit.type == UnitType.OUTLAW, my_crew.units))) < MAX_OUTLAW_AMOUNT):
+        if(self.blitzium >= 600 and len(
+                list(filter(lambda unit: unit.type == UnitType.OUTLAW, self.units))) < self.MAX_OUTLAW_AMOUNT):
             actions.append(BuyAction(UnitType.OUTLAW))
 
         return actions
@@ -59,15 +73,15 @@ class Bot:
                 closest_point_distance = distance
         return closest_point
 
-    def get_closest_minable_square(self, init_position, map, crews, my_id):
+    def get_closest_minable_square(self, init_position):
         minables = []
-        for x in range(map.get_map_size()):
-            for y in range(map.get_map_size()):
+        for x in range(self.game_map.get_map_size()):
+            for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
-                if map.get_tile_type_at(position) == TileType.MINE:
+                if self.game_map.get_tile_type_at(position) == TileType.MINE:
                     adjacents = self.get_adjacent_positions(position)
                     for adjacent in adjacents:
-                        if self.position_is_free(map, crews, adjacent, my_id):
+                        if self.position_is_free(adjacent):
                             minables.append(adjacent)
         return self.get_closest_position(init_position, minables)
 
@@ -77,42 +91,42 @@ class Bot:
                 Position(position.x, position.y - 1),
                 Position(position.x + 1, position.y)]
 
-    def position_is_free(self, map, crews, position, my_id):
-        if self.is_in_enemy_zone(position, crews, my_id):
+    def position_is_free(self, position):
+        if self.is_in_enemy_zone(position):
             return False
 
-        for crew in crews:
+        for crew in self.crews:
             for unit in crew.units:
                 if unit.position == position:
                     return False
         try:
-            map.validate_tile_exists(position)
+            self.game_map.validate_tile_exists(position)
         except:
             return False
 
-        return map.get_tile_type_at(position) == TileType.EMPTY
+        return self.game_map.get_tile_type_at(position) == TileType.EMPTY
 
-    def get_miner_action(self, unit, map, crews, my_id, rules):
-        if unit.blitzium >= rules.MAX_CART_CARGO:
-            return self.drop_miner_cargo(unit, map, crews, my_id)
+    def get_miner_action(self, unit):
+        if unit.blitzium >= self.rules.MAX_CART_CARGO:
+            return self.drop_miner_cargo(unit)
 
         for adjacent in self.get_adjacent_positions(unit.position):
             try:
-                if map.get_tile_type_at(adjacent) == TileType.MINE:
+                if self.game_map.get_tile_type_at(adjacent) == TileType.MINE:
                     return UnitAction(UnitActionType.MINE, unit.id, adjacent)
             except:
                 pass
 
-        minable = self.get_closest_minable_square(unit.position, map, crews, my_id)
-        target = minable if minable is not None else self.get_random_position(map.get_map_size())
+        minable = self.get_closest_minable_square(unit.position)
+        target = minable if minable is not None else self.get_random_position(self.game_map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
-    def get_outlaw_action(self, unit, map, crews, my_crew, my_id, game_message : GameMessage) :
-        if my_crew.blitzium > 50:
+    def get_outlaw_action(self, unit) :
+        if unit.blitzium > 50:
             for adjacent in self.get_adjacent_positions(unit.position):
                 try:
-                    for crew in crews :
-                        if not game_message.crewId == crew.id:
+                    for crew in self.crews :
+                        if not self.my_id == crew.id:
                             for other in crew.units:
                                 if other.type == UnitType.MINER:
                                     if adjacent == other.position:
@@ -120,57 +134,57 @@ class Bot:
                 except:
                     pass
 
-        ennemy = self.get_victim(unit.position, map, crews, my_id, game_message)
-        target = ennemy if ennemy is not None else self.get_random_position(map.get_map_size())
+        ennemy = self.get_victim(unit.position)
+        target = ennemy if ennemy is not None else self.get_random_position(self.game_map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
-    def get_victim(self, init_position, map, crews, my_id, game_message : GameMessage):
-        ennemy_outlaws = self.get_ennemy_outlaws(self, init_position, map, crews, my_id, game_message : GameMessage)
-        ennemy_miners = self.get_ennemy_miners(self, init_position, map, crews, my_id, game_message : GameMessage)
+    def get_victim(self, init_position):
+        ennemy_outlaws = self.get_ennemy_outlaws(self, init_position)
+        ennemy_miners = self.get_ennemy_miners(self, init_position)
         victims = ennemy_outlaws
         if ennemy_outlaws == []:
             victims = ennemy_miners
         return self.get_closest_position(init_position, victims)
     
-    def get_ennemy_miners(self, init_position, map, crews, my_id, game_message : GameMessage):
+    def get_ennemy_miners(self, init_position):
         ennemy_miners = []
-        for x in range(map.get_map_size()):
-            for y in range(map.get_map_size()):
+        for x in range(self.game_map.get_map_size()):
+            for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
-                for crew in crews :
-                    if not game_message.crewId == crew.id:
+                for crew in self.crews :
+                    if not self.my_id == crew.id:
                         for unit in crew.units:
                             if unit.type == UnitType.MINER:
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
-                                        if self.position_is_free(map, crews, adjacent, my_id):
+                                        if self.position_is_free(adjacent):
                                             ennemy_miners.append(adjacent)
         return ennemy_miners
 
-    def get_ennemy_outlaws(self, init_position, map, crews, my_id, game_message : GameMessage):
+    def get_ennemy_outlaws(self, init_position):
         ennemy_outlaws = []
-        for x in range(map.get_map_size()):
-            for y in range(map.get_map_size()):
+        for x in range(self.game_map.get_map_size()):
+            for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
-                for crew in crews :
-                    if not game_message.crewId == crew.id:
+                for crew in self.crews :
+                    if not self.my_id == crew.id:
                         for unit in crew.units:
                             if unit.type == UnitType.OUTLAW:
                                 if position == unit.position:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
-                                        if self.position_is_free(map, crews, adjacent, my_id):
+                                        if self.position_is_free(adjacent):
                                             ennemy_outlaws.append(adjacent)
         return ennemy_outlaws
 
 
-    def get_cart_action(self, unit, map, crews, my_crew, rules, my_id):
-        if unit.blitzium == rules.MAX_CART_CARGO:
-            return self.drop_home(unit, my_crew, map, crews, my_id)
+    def get_cart_action(self, unit):
+        if unit.blitzium == self.rules.MAX_CART_CARGO:
+            return self.drop_home(unit)
 
         depot_positions = []
-        for depot in map.depots:
+        for depot in self.game_map.depots:
             depot_positions.append(depot.position)
 
         for adjacent in self.get_adjacent_positions(unit.position):
@@ -185,42 +199,42 @@ class Bot:
 
         if closest_depot is not None:
             for adj in self.get_adjacent_positions(closest_depot):
-                if self.position_is_free(map, crews, adj, my_id):
+                if self.position_is_free(adj):
                     return UnitAction(UnitActionType.MOVE, unit.id, adj)
 
-        closest_miner_position = self.get_closest_friendly_miner(unit.position, my_crew, my_id, crews, map)
+        closest_miner_position = self.get_closest_friendly_miner(unit.position)
 
         return UnitAction(UnitActionType.MOVE, unit.id, closest_miner_position)
 
-    def get_closest_friendly_miner(self, initial_position, my_crew, my_id, crews, map):
+    def get_closest_friendly_miner(self, initial_position):
         miner_positions = []
-        for unit in my_crew.units:
+        for unit in self.units:
             if unit.type == UnitType.MINER:
                 miner_positions.append(unit.position)
         if miner_positions is not []:
             closest_miner = self.get_closest_position(initial_position, miner_positions)
             adjacents = self.get_adjacent_positions(closest_miner)
             for adjacent in adjacents:
-                if self.position_is_free(map, crews, adjacent, my_id):
+                if self.position_is_free(adjacent):
                     return adjacent
-        return self.get_random_position(map.get_map_size())
+        return self.get_random_position(self.game_map.get_map_size())
 
-    def drop_home(self, unit, my_crew, map, crews, my_id):
-        if my_crew.homeBase in self.get_adjacent_positions(unit.position):
-            return UnitAction(UnitActionType.DROP, unit.id, my_crew.homeBase)
+    def drop_home(self, unit):
+        if self.my_crew.homeBase in self.get_adjacent_positions(unit.position):
+            return UnitAction(UnitActionType.DROP, unit.id, self.my_crew.homeBase)
 
-        for adj in self.get_adjacent_positions(my_crew.homeBase):
-            if self.position_is_free(map, crews, adj, my_id):
+        for adj in self.get_adjacent_positions(self.my_crew.homeBase):
+            if self.position_is_free(adj):
                 return UnitAction(UnitActionType.MOVE, unit.id, adj)
 
-    def drop_miner_cargo(self, unit, map, crews, my_id):
+    def drop_miner_cargo(self, unit):
         for adj in self.get_adjacent_positions(unit.position):
-            if self.position_is_free(map, crews, adj, my_id):
+            if self.position_is_free(adj):
                 return UnitAction(UnitActionType.DROP, unit.id, adj)
 
-    def is_in_enemy_zone(self, position, crews, my_id):
-        for crew in crews:
-            if crew.id == my_id:
+    def is_in_enemy_zone(self, position):
+        for crew in self.crews:
+            if crew.id == self.my_id:
                 continue
             if crew.homeBase.x - 3 <= position.x <= crew.homeBase.x + 3 \
                     and crew.homeBase.y - 3 <= position.y <= crew.homeBase.y + 3:
