@@ -6,19 +6,20 @@ import os
 import maps
 import importlib
 
-def importAppFromFolder(folder):
+def importAppFromFolder(folder, module_name):
     sys.path.append(folder)
-    module = importlib.import_module('application')
+    importlib.invalidate_caches()
+    module = importlib.import_module(module_name)
     sys.path.remove(folder)
     return module
 
-appDev = importAppFromFolder('./Develop')
+appDev = importAppFromFolder('./Develop', 'application')
 
 async def main(loop):
     bots = ['V4']
     n = len(bots) + 1
-    delay = 100
-    game_map = maps.dp[0]
+    delay = 10
+    game_map = maps.qp[2]
     
     print('Running docker commands....')
     os.system(f'powershell docker container stop $(docker container ls -q)')
@@ -27,10 +28,15 @@ async def main(loop):
 
     await asyncio.sleep(1)
     tasks = []
+    names = []
     tasks.append(loop.create_task(appDev.run('Develop')))
-    for name in bots:
-        folder = f'./Bots/{name}'
-        module = importAppFromFolder(folder)
+    for originalName in bots:
+        name = originalName
+        if name in names:
+            name += f'_{len(names)}'
+        names.append(originalName)
+        folder = f'./Bots/{originalName}'
+        module = importAppFromFolder(folder, originalName)
         tasks.append(loop.create_task(module.run(f'{name}')))
 
     while not all(map(lambda x: x.done(), tasks)):
