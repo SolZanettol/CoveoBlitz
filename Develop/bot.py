@@ -33,7 +33,7 @@ class Bot:
         return Position(random.randint(0, map_size - 1), random.randint(0, map_size - 1))
 
     def get_closest_position(self, initial_position, potential_list):
-        closest_point = Position(0, 0)
+        closest_point = None
         closest_point_distance = 100000000
         for position in potential_list:
             distance = (position.x- initial_position.x)**2 + (position.y- initial_position.y)**2
