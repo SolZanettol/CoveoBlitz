@@ -42,9 +42,7 @@ class Bot:
         if game_message.tick == 0:
             actions += [BuyAction(UnitType.CART)]
 
-        if (self.blitzium >= self.my_crew.prices.CART and len(
-                list(filter(lambda unit: unit.type == UnitType.CART, self.units))) < self.MAX_CART_AMOUNT and len(
-                list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) == self.MAX_MINER_AMOUNT):
+        if self.should_buy_cart():
             actions.append(BuyAction(UnitType.CART))
         if self.should_buy_miner():
             actions.append(BuyAction(UnitType.MINER))
@@ -177,6 +175,9 @@ class Bot:
     def get_units_by_type(self, t):
         return list(filter(lambda unit: unit.type == t, self.units))
 
+    def get_manhattan_distance(self, p1, p2):
+        return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+
     def should_buy_miner(self):
         has_cash = self.blitzium >= self.my_crew.prices.MINER
         maxed_out = len(self.get_units_by_type(UnitType.MINER)) >= self.MAX_MINER_AMOUNT
@@ -184,3 +185,17 @@ class Bot:
         have_more_time = self.my_crew.prices.MINER * 3 < (self.total_ticks - self.current_tick)
 
         return has_cash and has_more_spots and have_more_time #and (not maxed_out)
+
+    def per_tick_value(self, source):
+        distance = self.get_manhattan_distance(source.position, self.my_crew.homeBase)
+        if not distance: return 0
+        return source.blitzium / (2*distance)
+
+    def should_buy_cart(self):
+        has_cash = self.blitzium >= self.my_crew.prices.CART
+        maxed_out = len(self.get_units_by_type(UnitType.CART)) >= self.MAX_CART_AMOUNT
+        have_more_time = self.my_crew.prices.CART * 2 < (self.total_ticks - self.current_tick)
+        targetCarts = sum([self.per_tick_value(source) for source in self.game_map.depots+self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
+        has_enough_carts = targetCarts < len(self.get_units_by_type(UnitType.CART))
+        
+        return has_cash and have_more_time and (not has_enough_carts) #and (not maxed_out)
