@@ -128,8 +128,8 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_victim(self, init_position):
-        enemy_outlaws = self.get_enemy_outlaws(init_position)
-        enemy_miners = self.get_enemy_miners(init_position)
+        enemy_outlaws = self.get_enemy_outlaws()
+        enemy_miners = self.get_enemy_miners()
         victims = enemy_outlaws
         if enemy_outlaws == []:
             victims = enemy_miners
@@ -155,7 +155,7 @@ class Bot:
                                             enemy_miners.append(adjacent)
         return enemy_miners
 
-    def get_enemy_outlaws(self, init_position):
+    def get_enemy_outlaws(self):
         enemy_outlaws = []
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
