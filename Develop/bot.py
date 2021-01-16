@@ -5,6 +5,8 @@ from game_command import Action, UnitAction, UnitActionType, BuyAction
 
 import random
 
+import itertools
+
 
 class Bot:
 
@@ -179,13 +181,22 @@ class Bot:
                     if not self.my_id == crew.id:
                         for other in crew.units:
                             if other.type == UnitType.OUTLAW and self.blitzium > 50 and adjacent == other.position:
-                                return [UnitAction(UnitActionType.ATTACK, unit.id, adjacent)]
+                                if adjacent == other.position:
+                                    return [UnitAction(UnitActionType.ATTACK, unit.id, adjacent)]
+
         return []
 
 
     def get_cart_action(self, unit):
         if unit.blitzium == self.rules.MAX_CART_CARGO:
             return self.drop_home(unit)
+
+        if unit.blitzium == 0:
+            for adjacent, cart in itertools.product(self.get_adjacent_positions(unit.position), self.get_units_by_type(UnitType.CART)):
+                if (cart.position == adjacent and
+                    self.get_manhattan_distance(adjacent, self.my_crew.homeBase) > self.get_manhattan_distance(unit.position, self.my_crew.homeBase) and
+                    cart.blitzium == self.rules.MAX_CART_CARGO):
+                    return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
 
         depot_positions_in_range = []
         depot_positions = []
@@ -198,20 +209,38 @@ class Bot:
             if adjacent in depot_positions:
                 return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
 
-        for adjacent in self.get_adjacent_positions(unit.position):
-            if adjacent in list(map(lambda u: u.position, self.get_units_by_type(UnitType.MINER))):
-                return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
-
         closest_depot = self.get_closest_position(unit.position, depot_positions_in_range)
 
-        if closest_depot is not None:
-            for adj in self.get_adjacent_positions(closest_depot):
-                if adj in self.in_range:
-                    return UnitAction(UnitActionType.MOVE, unit.id, adj)
+        for adjacent in self.get_adjacent_positions(unit.position):
+            for miner in self.get_units_by_type(UnitType.MINER):
+                if (adjacent == miner.position and
+                    (closest_depot is None or
+                    miner.blitzium >= 25)):
+                    return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
+
+        # if closest_depot is not None:
+        #     for adj in self.get_adjacent_positions(closest_depot):
+        #         if adj in self.in_range:
+        #             return UnitAction(UnitActionType.MOVE, unit.id, adj)
 
         closest_miner_position = self.get_closest_friendly_miner(unit.position)
 
-        return UnitAction(UnitActionType.MOVE, unit.id, closest_miner_position)
+        has_miner = closest_miner_position is not None
+        has_depot = closest_depot is not None
+
+        if has_depot and not has_miner:
+            return UnitAction(UnitActionType.MOVE, unit.id, closest_depot)
+        elif has_miner and not has_depot:
+            # ps = self.get_closest_position(unit.position, self.get_adjacent_positions(closest_miner_position))
+            return UnitAction(UnitActionType.MOVE, unit.id, closest_miner_position)
+        elif has_miner and has_depot:
+            if self.get_manhattan_distance(closest_depot, closest_miner_position) > 10:
+                ps = self.get_closest_position(unit.position, self.get_adjacent_positions(closest_miner_position) + [closest_depot])
+                return UnitAction(UnitActionType.MOVE, unit.id, ps)
+            else:
+                return UnitAction(UnitActionType.MOVE, unit.id, closest_depot)
+
+        return UnitAction(UnitActionType.MOVE, unit.id, unit.position)
 
     def get_closest_friendly_miner(self, initial_position):
         miner_positions = []
@@ -227,6 +256,14 @@ class Bot:
         return self.get_random_position(self.game_map.get_map_size())
 
     def drop_home(self, unit):
+        carts = self.get_units_by_type(UnitType.CART)
+        for cart in carts:
+            if (cart != unit and
+                cart.position in self.get_adjacent_positions(unit.position) and
+                self.get_manhattan_distance(cart.position, self.my_crew.homeBase) < self.get_manhattan_distance(unit.position, self.my_crew.homeBase) and
+                cart.blitzium == 0):
+                    return UnitAction(UnitActionType.DROP, unit.id, cart.position)
+
         if self.my_crew.homeBase in self.get_adjacent_positions(unit.position):
             return UnitAction(UnitActionType.DROP, unit.id, self.my_crew.homeBase)
 
