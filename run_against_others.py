@@ -15,7 +15,7 @@ def importAppFromFolder(folder):
 appDev = importAppFromFolder('./Develop')
 
 async def main(loop):
-    bots = ['Dev2']
+    bots = ['V4']
     n = len(bots) + 1
     delay = 100
     game_map = maps.dp[0]
