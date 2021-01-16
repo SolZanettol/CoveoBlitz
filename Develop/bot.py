@@ -114,17 +114,14 @@ class Bot:
 
     def get_outlaw_action(self, unit) :
         if (len(self.crews) > 2 and self.total_ticks - self.current_tick > 250) or (len(self.crews) == 2 and self.total_ticks - self.current_tick > 150):
-            if self.blitzium > 600:
+            if self.blitzium > 400:
                 for adjacent in self.get_adjacent_positions(unit.position):
-                    try:
-                        for crew in self.crews :
-                            if not self.my_id == crew.id:
-                                for other in crew.units:
-                                    if other.type == UnitType.MINER:
-                                        if adjacent == other.position:
-                                            return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
-                    except:
-                        pass
+                    for crew in self.crews :
+                        if not self.my_id == crew.id:
+                            for other in crew.units:
+                                if other.type == UnitType.MINER:
+                                    if adjacent == other.position:
+                                        return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
 
         ennemy = self.get_victim(unit.position)
         target = ennemy if ennemy is not None else self.get_random_position(self.game_map.get_map_size())
