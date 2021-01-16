@@ -59,7 +59,7 @@ class Bot:
                 list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) < self.MAX_MINER_AMOUNT):
             actions.append(BuyAction(UnitType.MINER))
 
-        if(self.blitzium >= 600 and len(
+        if(self.blitzium >= 400 and len(
                 list(filter(lambda unit: unit.type == UnitType.OUTLAW, self.units))) < self.MAX_OUTLAW_AMOUNT):
             actions.append(BuyAction(UnitType.OUTLAW))
 
@@ -112,7 +112,7 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_outlaw_action(self, unit) :
-        if unit.blitzium > 50:
+        if self.blitzium > 600:
             for adjacent in self.get_adjacent_positions(unit.position):
                 try:
                     for crew in self.crews :
