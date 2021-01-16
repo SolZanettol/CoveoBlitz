@@ -379,6 +379,7 @@ class Bot:
         in_range = []
         matrix_np = self.flood_fill().astype(np.uint8)
         mask = np.zeros(np.asarray(matrix_np.shape)+2, dtype=np.uint8)
+        matrix_np[my_crew.homeBase.x, my_crew.homeBase.y] = 0
         start_pt = (my_crew.homeBase.y, my_crew.homeBase.x)
         cv2.floodFill(matrix_np, mask, start_pt, 255)
         mask = mask[1:-1, 1:-1]
