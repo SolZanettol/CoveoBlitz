@@ -183,7 +183,7 @@ class Bot:
     def quickdraw(self):
         for unit in self.units:
             if unit.type == UnitType.OUTLAW:
-                for adjacent, crew in zip(self.get_adjacent_positions(unit.position), self.crews):
+                for adjacent, crew in itertools.product(self.get_adjacent_positions(unit.position), self.crews):
                     if not self.my_id == crew.id:
                         for other in crew.units:
                             if other.type == UnitType.OUTLAW and self.blitzium > 50 and adjacent == other.position:
