@@ -135,7 +135,8 @@ class Bot:
         victims = enemy_outlaws
         if enemy_outlaws == []:
             if len(self.crews) == 2:
-                victims = enemy_miners
+                if len(enemy_miners) > 1:
+                    victims = enemy_miners
 
         closest = self.get_closest_position(init_position, victims)
         if closest is None:
