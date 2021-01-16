@@ -206,7 +206,7 @@ class Bot:
             if unit.position in self.get_adjacent_positions(self.my_crew.homeBase):
                 for adj in self.get_adjacent_positions(unit.position):
                     if adj != self.my_crew.homeBase and adj in self.in_range:
-                        return UnitAction(UnitActionType.MOVE, unit.id, adjacent)
+                        return UnitAction(UnitActionType.MOVE, unit.id, adj)
 
         depot_positions_in_range = []
         depot_positions = []
