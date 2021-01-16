@@ -123,8 +123,8 @@ class Bot:
                                         if adjacent == other.position and not self.is_in_enemy_zone(adjacent):
                                             return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
 
-        ennemy = self.get_victim(unit.position)
-        target = ennemy if ennemy is not None else self.get_random_position(self.game_map.get_map_size())
+        enemy = self.get_victim(unit.position)
+        target = enemy if enemy is not None else self.get_random_position(self.game_map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_victim(self, init_position):
@@ -133,7 +133,11 @@ class Bot:
         victims = enemy_outlaws
         if enemy_outlaws == []:
             victims = enemy_miners
-        return self.get_closest_position(init_position, victims)
+
+        closest = self.get_closest_position(init_position, victims)
+        for adj in self.get_adjacent_positions(closest):
+            if adj in self.in_range:
+                return adj
 
     def get_enemy_miners(self, init_position):
         enemy_miners = []
