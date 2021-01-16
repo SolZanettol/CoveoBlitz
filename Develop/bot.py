@@ -17,7 +17,7 @@ class Bot:
         my_id = game_message.crewId
         MAX_MINER_AMOUNT = 4
 
-        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_crew, my_id, rules) for unit in my_crew.units]
+        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_id, rules) for unit in my_crew.units]
 
         if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
             actions.append(BuyAction(UnitType.MINER))
@@ -70,9 +70,9 @@ class Bot:
 
         return map.get_tile_type_at(position) == TileType.EMPTY
 
-    def get_miner_action(self, unit, map, crews, my_crew, my_id, rules):
-        if unit.blitzium == rules.MAX_MINER_MOVE_CARGO:
-            return self.drop_home(unit, my_crew, map)
+    def get_miner_action(self, unit, map, crews, my_id, rules):
+        if unit.blitzium >= rules.MAX_CART_CARGO:
+            return self.drop_miner_cargo(unit, map, crews, my_id)
 
         for adjacent in self.get_adjacent_positions(unit.position):
             try:
@@ -85,14 +85,18 @@ class Bot:
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
-    def drop_home(self, unit, my_crew, map):
+    def drop_home(self, unit, my_crew, map, crews, my_id):
         if my_crew.homeBase in self.get_adjacent_positions(unit.position):
             return UnitAction(UnitActionType.DROP, unit.id, my_crew.homeBase)
 
         for adj in self.get_adjacent_positions(my_crew.homeBase):
-            if map.get_tile_type_at(adj) != TileType.WALL:
+            if self.position_is_free(map, crews, adj, my_id):
                 return UnitAction(UnitActionType.MOVE, unit.id, adj)
 
+    def drop_miner_cargo(self, unit, map, crews, my_id):
+        for adj in self.get_adjacent_positions(unit.position):
+            if self.position_is_free(map, crews, adj, my_id):
+                return UnitAction(UnitActionType.DROP, unit.id, adj)
 
     def is_in_enemy_zone(self, position, crews, my_id):
         for crew in crews:
