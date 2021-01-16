@@ -18,7 +18,7 @@ async def main(loop):
     os.system(f'docker run -d --rm -p 8765:8765 blitzmmxxi/play --nbOfCrews={n} --gameConfig={game_map} --delayBetweenTicksMs={delay}')
     print('Done!')
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
     tasks = []
     for i in range(n):
         tasks.append(loop.create_task(application.run(f'Develop-{i}')))
