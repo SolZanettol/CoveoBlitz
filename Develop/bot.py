@@ -132,7 +132,7 @@ class Bot:
         if enemy is not None:
             return UnitAction(UnitActionType.MOVE, unit.id, enemy)
         else:
-            return UnitAction(UnitActionType.MOVE, unit.id, self.get_random_position(self.game_map.get_map_size))
+            return UnitAction(UnitActionType.MOVE, unit.id, self.get_random_position(self.game_map.get_map_size()))
 
     def get_victim(self, init_position):
         enemy_outlaws = self.get_enemy_outlaws()
