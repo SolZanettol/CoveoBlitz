@@ -360,9 +360,9 @@ class Bot:
         map_matrix = np.where(map_matrix == 'BASE', 0, map_matrix)
         map_matrix_int = map_matrix.astype(int)
         for crew in self.crews:
-            #for unit in crew.units:
-                #if not unit.path:
-                    #map_matrix_int[unit.position.x, unit.position.y] = 1
+            for unit in crew.units:
+                if not unit.path:
+                    map_matrix_int[unit.position.x, unit.position.y] = 1
             if crew.id == self.my_id:
                 continue
             else:

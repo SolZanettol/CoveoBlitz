@@ -8,13 +8,13 @@ dp = [
     "2P-06.bmp", # grosse criss 33*33
     "2P-07.bmp", # kinda fucked, kinda hard, happy we don't get it more often
     "2P-08.bmp", # 3 sources, straight up au mid
-    "2P-09.bmp",
+    "2P-09.bmp", # serpentins
     "2P-10.bmp", # rien d'intéressant
     "2P-11.bmp", # middle sources, mostly rush
     "2P-12.bmp", # really good for testing pathfinding
     "2P-13.bmp", # mini map, kinda suck, but kinda good for dev
-    "2P-14.bmp", # really interesting, innacessible mining zone
-    "2P-15.bmp",
+    "2P-14.bmp", # rectangle, une seule ressource
+    "2P-15.bmp", # really interesting, innacessible mining zone
     "2P-16.bmp"]
 qp =[
     "4P-01.bmp",
