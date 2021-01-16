@@ -9,22 +9,31 @@ import random
 class Bot:
 
     def get_next_move(self, game_message: GameMessage) -> List[Action]:
-        
+
         my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
         crews = game_message.crews
         game_map = game_message.map
         rules = game_message.rules
         my_id = game_message.crewId
-        MAX_MINER_AMOUNT = 4
-        MAX_CART_AMOUNT = 1
+        MAX_MINER_AMOUNT = 5
+        MAX_CART_AMOUNT = 3
 
-        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_id, rules) for unit in my_crew.units if unit.type == UnitType.MINER]
+        actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_id, rules) for unit in my_crew.units if
+                                 unit.type == UnitType.MINER]
 
-        cart_actions: List[Action] = [self.get_cart_action(unit, game_map, crews, my_crew, rules, my_id) for unit in my_crew.units if unit.type == UnitType.CART]
+        cart_actions: List[Action] = [self.get_cart_action(unit, game_map, crews, my_crew, rules, my_id) for unit in
+                                      my_crew.units if unit.type == UnitType.CART]
+        print(cart_actions)
         actions.extend(cart_actions)
-        if(my_crew.blitzium >= my_crew.prices.CART and len(list(filter(lambda unit: unit.type == UnitType.CART, my_crew.units))) < MAX_CART_AMOUNT) :
+        if game_message.tick == 0:
+            actions += [BuyAction(UnitType.CART)]
+
+        if (my_crew.blitzium >= my_crew.prices.CART and len(
+                list(filter(lambda unit: unit.type == UnitType.CART, my_crew.units))) < MAX_CART_AMOUNT and len(
+                list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) == MAX_MINER_AMOUNT):
             actions.append(BuyAction(UnitType.CART))
-        if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
+        if (my_crew.blitzium >= my_crew.prices.MINER and len(
+                list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT):
             actions.append(BuyAction(UnitType.MINER))
 
         return actions
@@ -36,7 +45,7 @@ class Bot:
         closest_point = None
         closest_point_distance = 100000000
         for position in potential_list:
-            distance = (position.x- initial_position.x)**2 + (position.y- initial_position.y)**2
+            distance = (position.x - initial_position.x) ** 2 + (position.y - initial_position.y) ** 2
             if distance <= closest_point_distance:
                 closest_point = Position(position.x, position.y)
                 closest_point_distance = distance
@@ -56,8 +65,8 @@ class Bot:
 
     def get_adjacent_positions(self, position):
         return [Position(position.x, position.y + 1),
-                Position(position.x -1, position.y),
-                Position(position.x, position.y -1),
+                Position(position.x - 1, position.y),
+                Position(position.x, position.y - 1),
                 Position(position.x + 1, position.y)]
 
     def position_is_free(self, map, crews, position, my_id):
@@ -90,7 +99,6 @@ class Bot:
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
-
     def get_cart_action(self, unit, map, crews, my_crew, rules, my_id):
         if unit.blitzium == rules.MAX_CART_CARGO:
             return self.drop_home(unit, my_crew, map, crews, my_id)
@@ -113,7 +121,7 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_closest_friendly_miner(self, initial_position, my_crew, my_id, crews, map):
-        miner_positions =[]
+        miner_positions = []
         target = self.get_random_position(map.get_map_size())
         for unit in my_crew.units:
             if unit.type == UnitType.MINER:
@@ -147,8 +155,3 @@ class Bot:
                     and crew.homeBase.y - 3 <= position.y <= crew.homeBase.y + 3:
                 return True
         return False
-
-
-
-
-
