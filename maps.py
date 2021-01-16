@@ -5,8 +5,8 @@ dp = [
     "2P-03.bmp", # really wack, really hard, good training
     "2P-04.bmp", # grosse criss 33*33 
     "2P-05.bmp", # grosse criss 32*32
-    "2P-06.bmp",
-    "2P-07.bmp",
+    "2P-06.bmp", # grosse criss 33*33
+    "2P-07.bmp", # kinda fucked, kinda hard, happy we don't get it more often
     "2P-08.bmp", # 3 sources, straight up au mid
     "2P-09.bmp",
     "2P-10.bmp", # rien d'intéressant
