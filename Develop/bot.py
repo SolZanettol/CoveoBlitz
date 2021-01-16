@@ -97,7 +97,7 @@ class Bot:
                 Position(position.x + 1, position.y)]
 
     def get_miner_action(self, unit):
-        if unit.blitzium >= self.rules.MAX_CART_CARGO:
+        if unit.blitzium >= 40:
             return self.drop_miner_cargo(unit)
 
         for adjacent in self.get_adjacent_positions(unit.position):
@@ -198,6 +198,10 @@ class Bot:
 
         for adjacent in self.get_adjacent_positions(unit.position):
             if adjacent in depot_positions:
+                return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
+
+        for adjacent in self.get_adjacent_positions(unit.position):
+            if adjacent in list(map(lambda u: u.position, self.get_units_by_type(UnitType.MINER))):
                 return UnitAction(UnitActionType.PICKUP, unit.id, adjacent)
 
         closest_depot = self.get_closest_position(unit.position, depot_positions_in_range)
