@@ -10,7 +10,7 @@ import application
 
 async def main(loop):
     n = 2
-    delay = 100
+    delay = 10
     game_map = maps.dp[2]
     ticks = 1000
 

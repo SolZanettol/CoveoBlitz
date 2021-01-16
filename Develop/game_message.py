@@ -85,7 +85,6 @@ class Map:
         else:
             raise Exception("Not a valid tile")
 
-
 @dataclass_json
 @dataclass
 class Unit:
