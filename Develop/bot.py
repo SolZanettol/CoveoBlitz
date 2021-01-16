@@ -208,7 +208,7 @@ class Bot:
                 for adj in self.get_adjacent_positions(unit.position):
                     if adj != self.my_crew.homeBase and adj in self.in_range:
                         potential += [adj]
-                    return UnitAction(UnitActionType.MOVE, unit.id, random.choice(adj))
+                    return UnitAction(UnitActionType.MOVE, unit.id, random.choice(potential))
 
         depot_positions_in_range = []
         depot_positions = []
