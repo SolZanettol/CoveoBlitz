@@ -18,17 +18,20 @@ class Bot:
         self.blitzium = None
         self.units = None
         self.in_range = None
+        self.current_tick = None
+        self.total_ticks = None
         self.MAX_MINER_AMOUNT = 5
         self.MAX_CART_AMOUNT = 5
         self.MAX_OUTLAW_AMOUNT = 1
 
     def get_next_move(self, game_message: GameMessage) -> List[Action]:
-
         self.my_crew = game_message.get_crews_by_id()[game_message.crewId]
         self.crews = game_message.crews
         self.game_map = game_message.map
         self.rules = game_message.rules
         self.my_id = game_message.crewId
+        self.current_tick = game_message.tick
+        self.total_ticks = game_message.totalTick
         self.blitzium = self.my_crew.blitzium
         self.units = self.my_crew.units
 
@@ -51,19 +54,15 @@ class Bot:
         if game_message.tick == 0:
             actions += [BuyAction(UnitType.CART)]
 
-        if (self.blitzium >= self.my_crew.prices.CART and len(
-                list(filter(lambda unit: unit.type == UnitType.CART, self.units))) < self.MAX_CART_AMOUNT and len(
-            list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) == self.MAX_MINER_AMOUNT):
+        if self.should_buy_cart():
             actions.append(BuyAction(UnitType.CART))
-        if (self.blitzium >= self.my_crew.prices.MINER and len(
-                list(filter(lambda unit: unit.type == UnitType.MINER, self.units))) < self.MAX_MINER_AMOUNT):
+        if self.should_buy_miner():
             actions.append(BuyAction(UnitType.MINER))
 
         if(self.blitzium >= 400 and len(
                 list(filter(lambda unit: unit.type == UnitType.OUTLAW, self.units))) < self.MAX_OUTLAW_AMOUNT):
             actions.append(BuyAction(UnitType.OUTLAW))
 
-        print(actions)
         return actions
 
     def get_random_position(self, map_size: int) -> Position:
@@ -136,7 +135,7 @@ class Bot:
         if enemy_outlaws == []:
             victims = enemy_miners
         return self.get_closest_position(init_position, victims)
-    
+
     def get_enemy_miners(self, init_position):
         enemy_miners = []
         for x in range(self.game_map.get_map_size()):
@@ -244,6 +243,34 @@ class Bot:
                 return True
         return False
 
+    def get_units_by_type(self, t):
+        return list(filter(lambda unit: unit.type == t, self.units))
+
+    def get_manhattan_distance(self, p1, p2):
+        return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+
+    def should_buy_miner(self):
+        has_cash = self.blitzium >= self.my_crew.prices.MINER
+        maxed_out = len(self.get_units_by_type(UnitType.MINER)) >= self.MAX_MINER_AMOUNT
+        has_more_spots = self.get_closest_minable_square(self.my_crew.homeBase)
+        have_more_time = self.my_crew.prices.MINER * 3 < (self.total_ticks - self.current_tick)
+
+        return has_cash and has_more_spots and have_more_time #and (not maxed_out)
+
+    def per_tick_value(self, source):
+        distance = self.get_manhattan_distance(source.position, self.my_crew.homeBase)
+        if not distance: return 0
+        return source.blitzium / (2*distance)
+
+    def should_buy_cart(self):
+        has_cash = self.blitzium >= self.my_crew.prices.CART
+        maxed_out = len(self.get_units_by_type(UnitType.CART)) >= self.MAX_CART_AMOUNT
+        have_more_time = self.my_crew.prices.CART * 2 < (self.total_ticks - self.current_tick)
+        targetCarts = sum([self.per_tick_value(source) for source in self.game_map.depots+self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
+        has_enough_carts = targetCarts < len(self.get_units_by_type(UnitType.CART))
+
+        return has_cash and have_more_time and (not has_enough_carts) #and (not maxed_out)
+
     def get_in_range(self, my_crew, crews, game_map):
         explored = [my_crew.homeBase] + self.get_adjacent_positions(my_crew.homeBase)
         unexplored = self.get_adjacent_positions(my_crew.homeBase)
@@ -257,7 +284,6 @@ class Bot:
 
         while unexplored:
             exploring, unexplored = unexplored[0], unexplored[1:]
-
 
             try:
                 self.game_map.validate_tile_exists(exploring)
@@ -273,7 +299,3 @@ class Bot:
                             unexplored += [next]
 
         return in_range
-
-
-
-

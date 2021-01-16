@@ -11,11 +11,12 @@ import application
 async def main(loop):
     n = 4
     delay = 100
-    game_map = maps.qp[2]
-    
+    game_map = maps.dp[3]
+    ticks = 1000
+
     print('Running docker commands....')
     os.system(f'powershell docker container stop $(docker container ls -q)')
-    os.system(f'docker run -d --rm -p 8765:8765 blitzmmxxi/play --nbOfCrews={n} --gameConfig={game_map} --delayBetweenTicksMs={delay}')
+    os.system(f'docker run -d --rm -p 8765:8765 blitzmmxxi/play --nbOfCrews={n} --gameConfig={game_map} --delayBetweenTicksMs={delay} --nbOfTicks={ticks}')
     print('Done!')
 
     await asyncio.sleep(2)

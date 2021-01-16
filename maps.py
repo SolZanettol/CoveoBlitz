@@ -11,7 +11,7 @@ dp = [
     "2P-09.bmp",
     "2P-10.bmp",
     "2P-11.bmp",
-    "2P-12.bmp",
+    "2P-12.bmp", # really good for testing pathfinding
     "2P-13.bmp",
     "2P-14.bmp",
     "2P-15.bmp",
