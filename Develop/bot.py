@@ -72,7 +72,7 @@ class Bot:
 
     def get_miner_action(self, unit, map, crews, my_crew, my_id, rules):
         if unit.blitzium == rules.MAX_MINER_MOVE_CARGO:
-            return self.drop_home(unit, my_crew)
+            return self.drop_home(unit, my_crew, map)
 
         for adjacent in self.get_adjacent_positions(unit.position):
             try:
@@ -85,11 +85,14 @@ class Bot:
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
-    def drop_home(self, unit, my_crew):
+    def drop_home(self, unit, my_crew, map):
         if my_crew.homeBase in self.get_adjacent_positions(unit.position):
             return UnitAction(UnitActionType.DROP, unit.id, my_crew.homeBase)
 
-        return UnitAction(UnitActionType.MOVE, unit.id, self.get_adjacent_positions(my_crew.homeBase)[0])
+        for adj in self.get_adjacent_positions(my_crew.homeBase):
+            if map.get_tile_type_at(adj) != TileType.WALL:
+                return UnitAction(UnitActionType.MOVE, unit.id, adj)
+
 
     def is_in_enemy_zone(self, position, crews, my_id):
         for crew in crews:
