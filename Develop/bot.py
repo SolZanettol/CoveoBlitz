@@ -129,15 +129,15 @@ class Bot:
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
     def get_victim(self, init_position):
-        ennemy_outlaws = self.get_ennemy_outlaws(init_position)
-        ennemy_miners = self.get_ennemy_miners(init_position)
-        victims = ennemy_outlaws
-        if ennemy_outlaws == []:
-            victims = ennemy_miners
+        enemy_outlaws = self.get_enemy_outlaws(init_position)
+        enemy_miners = self.get_enemy_miners(init_position)
+        victims = enemy_outlaws
+        if enemy_outlaws == []:
+            victims = enemy_miners
         return self.get_closest_position(init_position, victims)
     
-    def get_ennemy_miners(self, init_position):
-        ennemy_miners = []
+    def get_enemy_miners(self, init_position):
+        enemy_miners = []
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
@@ -149,11 +149,11 @@ class Bot:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
                                         if adjacent in self.in_range:
-                                            ennemy_miners.append(adjacent)
-        return ennemy_miners
+                                            enemy_miners.append(adjacent)
+        return enemy_miners
 
-    def get_ennemy_outlaws(self, init_position):
-        ennemy_outlaws = []
+    def get_enemy_outlaws(self, init_position):
+        enemy_outlaws = []
         for x in range(self.game_map.get_map_size()):
             for y in range(self.game_map.get_map_size()):
                 position = Position(x, y)
@@ -165,8 +165,8 @@ class Bot:
                                     adjacents = self.get_adjacent_positions(position)
                                     for adjacent in adjacents:
                                         if adjacent in self.in_range:
-                                            ennemy_outlaws.append(adjacent)
-        return ennemy_outlaws
+                                            enemy_outlaws.append(adjacent)
+        return enemy_outlaws
 
     def quickdraw(self):
         for unit in self.units:
