@@ -259,14 +259,15 @@ class Bot:
 
     def per_tick_value(self, source):
         distance = self.get_manhattan_distance(source.position, self.my_crew.homeBase)
-        if not distance: return 0
-        return source.blitzium / (2*distance)
+        if not source.blitzium: return 0
+        return (2*distance) / 25
 
     def should_buy_cart(self):
         has_cash = self.blitzium >= self.my_crew.prices.CART
         maxed_out = len(self.get_units_by_type(UnitType.CART)) >= self.MAX_CART_AMOUNT
         have_more_time = self.my_crew.prices.CART * 2 < (self.total_ticks - self.current_tick)
         targetCarts = sum([self.per_tick_value(source) for source in self.game_map.depots+self.get_units_by_type(UnitType.MINER) if not self.is_in_enemy_zone(source.position)])
+        print(targetCarts)
         has_enough_carts = targetCarts < len(self.get_units_by_type(UnitType.CART))
 
         return has_cash and have_more_time and (not has_enough_carts) #and (not maxed_out)
