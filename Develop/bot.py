@@ -1,6 +1,6 @@
 from typing import List
-from game_message import GameMessage, Position, Crew
-from game_command import Action, UnitAction, UnitActionType
+from game_message import GameMessage, Position, Crew, UnitType
+from game_command import Action, UnitAction, BuyAction, UnitActionType
 import random
 
 
@@ -15,12 +15,16 @@ class Bot:
         """
         my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
 
-        actions: List[UnitAction] = [UnitAction(UnitActionType.MOVE,
+        actions: List[Action] = [BuyAction(UnitType.CART)]
+
+        actions.extend(UnitAction(UnitActionType.MOVE,
                                                 unit.id,
                                                 self.get_random_position(
-                                                    game_message.map.get_map_size())) for unit in my_crew.units]
+                                                    game_message.map.get_map_size())) for unit in my_crew.units)
 
         return actions
 
     def get_random_position(self, map_size: int) -> Position:
         return Position(random.randint(0, map_size - 1), random.randint(0, map_size - 1))
+
+    def get_cart_
