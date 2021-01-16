@@ -12,7 +12,7 @@ async def main(loop):
     n = 2
     delay = 150
     game_map = maps.dp[12]
-    ticks = 200
+    ticks = 1000
     
     print('Running docker commands....')
     os.system(f'powershell docker container stop $(docker container ls -q)')
