@@ -12,6 +12,7 @@ class Bot:
         
         my_crew: Crew = game_message.get_crews_by_id()[game_message.crewId]
         crews = game_message.crews
+    
         game_map = game_message.map
         rules = game_message.rules
         my_id = game_message.crewId
@@ -20,12 +21,14 @@ class Bot:
 
         actions: List[Action] = [self.get_miner_action(unit, game_map, crews, my_crew, my_id, rules) for unit in my_crew.units if unit.type == UnitType.MINER]
 
-        actions.append(self.)
+        outlaw_actions: List[Action] = [self.get_outlaw_action(unit, game_map, crews, my_crew, my_id, game_message) for unit in my_crew.units if unit.type == UnitType.OUTLAW]
+
+        actions.extend(outlaw_actions)
 
         if(my_crew.blitzium >= my_crew.prices.MINER and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_MINER_AMOUNT) :
             actions.append(BuyAction(UnitType.MINER))
 
-        if(my_crew.blitzium >= 250 and len(list(filter(lambda unit: unit.type == UnitType.MINER, my_crew.units))) < MAX_OUTLAW_AMOUNT) :
+        if(my_crew.blitzium >= 100 and len(list(filter(lambda unit: unit.type == UnitType.OUTLAW, my_crew.units))) < MAX_OUTLAW_AMOUNT) :
             actions.append(BuyAction(UnitType.OUTLAW))
 
         return actions
@@ -91,8 +94,37 @@ class Bot:
         target = minable if minable is not None else self.get_random_position(map.get_map_size())
         return UnitAction(UnitActionType.MOVE, unit.id, target)
 
-    def get_outlaw_action(self, unit, map, crews, my_crews, my_id) :
-        
+    def get_outlaw_action(self, unit, map, crews, my_crews, my_id, game_message : GameMessage) :
+        for adjacent in self.get_adjacent_positions(unit.position):
+            try:
+                for crew in crews :
+                    if not game_message.crewId == crew.id:
+                        for other in crew.units:
+                            if other.type == UnitType.MINER:
+                                if adjacent == other.position:
+                                    return UnitAction(UnitActionType.ATTACK, unit.id, adjacent)
+            except:
+                pass
+
+        ennemy = self.get_closest_ennemy_miner(unit.position, map, crews, my_id, game_message)
+        target = ennemy if ennemy is not None else self.get_random_position(map.get_map_size())
+        return UnitAction(UnitActionType.MOVE, unit.id, target)
+
+    def get_closest_ennemy_miner(self, init_position, map, crews, my_id, game_message : GameMessage):
+        ennemy_miner = []
+        for x in range(map.get_map_size()):
+            for y in range(map.get_map_size()):
+                position = Position(x, y)
+                for crew in crews :
+                    if not game_message.crewId == crew.id:
+                        for unit in crew.units:
+                            if unit.type == UnitType.MINER:
+                                if position == unit.position:
+                                    adjacents = self.get_adjacent_positions(position)
+                                    for adjacent in adjacents:
+                                        if self.position_is_free(map, crews, adjacent, my_id):
+                                            ennemy_miner.append(adjacent)
+        return self.get_closest_position(init_position, ennemy_miner)
 
     def drop_home(self, unit, my_crew, map):
         if my_crew.homeBase in self.get_adjacent_positions(unit.position):
