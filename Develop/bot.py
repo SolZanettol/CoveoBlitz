@@ -379,10 +379,10 @@ class Bot:
 
     def get_in_range(self, my_crew, crews, game_map):
         in_range = []
-        matrix_np = self.flood_fill()
+        matrix_np = self.flood_fill().astype(np.uint8)
         mask = np.zeros(np.asarray(matrix_np.shape)+2, dtype=np.uint8)
         start_pt = (my_crew.homeBase.y, my_crew.homeBase.x)
-        help_me = cv2.floodFill(matrix_np, mask, start_pt, 255)
+        cv2.floodFill(matrix_np, mask, start_pt, 255)
         mask = mask[1:-1, 1:-1]
 
         for x in range(0, mask.shape[0]):

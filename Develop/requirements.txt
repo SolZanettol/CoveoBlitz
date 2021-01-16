@@ -1,4 +1,4 @@
 websockets==8.1
 dataclasses-json==0.5.2
 opencv-python
-numpy
+numpy==1.19.3
