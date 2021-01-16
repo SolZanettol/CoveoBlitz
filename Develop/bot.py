@@ -226,6 +226,10 @@ class Bot:
             return UnitAction(UnitActionType.DROP, unit.id, self.my_crew.homeBase)
 
         for adj in self.get_adjacent_positions(self.my_crew.homeBase):
+            if adj in self.in_range and adj not in [u.position for u in self.units]:
+                return UnitAction(UnitActionType.MOVE, unit.id, adj)
+
+        for adj in self.get_adjacent_positions(self.my_crew.homeBase):
             if adj in self.in_range:
                 return UnitAction(UnitActionType.MOVE, unit.id, adj)
 
